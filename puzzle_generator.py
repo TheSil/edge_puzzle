@@ -25,6 +25,12 @@ class PieceDef:
     def __repr__(self):
         return str(self.colors)
 
+    def __hash__(self):
+        return hash(tuple(self.colors))
+
+    def __eq__(self, other):
+        return isinstance(other, PieceDef) and self.__dict__ == other.__dict__
+
 
 # use the sequence and de-serialize it into individual pieces
 # we need to be careful so that neighbour edges match
@@ -213,10 +219,34 @@ def validate(board, height, width):
                 check(center.get_color(W), left.get_color(E))
 
 
+def has_duplicates(container):
+    scontainer = set(container)
+
+    if len(container) != len(scontainer):
+        return True
+
+    for piece in container:
+        for rot in (1, 2, 3):
+            rotated = piece.colors[rot:] + piece.colors[0:rot]
+            if PieceDef(*rotated) in container:
+                return True
+
+    return False
+
+
 if __name__ == '__main__':
 
-    board, corners, edges, inner = generate_puzzle(height, width, unique_edge_colors_count, unique_inner_colors_count,
-                                                   color_counts)
+    generated = False
+    while not generated:
+        board, corners, edges, inner = generate_puzzle(height, width, unique_edge_colors_count,
+                                                       unique_inner_colors_count,
+                                                       color_counts)
+
+        if has_duplicates(corners) or has_duplicates(edges) or has_duplicates(inner):
+            print("duplicates found, repeating...")
+            continue
+
+        break
 
     validate(board, height, width)
 
