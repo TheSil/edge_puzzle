@@ -104,14 +104,14 @@ You can use following keys:
 
 Some additional backtracker features:
 
- - It does not go just horizontally, instead it fills a position with minimal number of possibilities at given time
- - Constraint reduction is used before choosing next position, this reduces number of required positions. For example, say we have three pieces x1, x2, x3 and positons P1, P2, P3, where set of possible pieces in that positions are P1={x1,x2}, P2={x1,x2} and P3={x1,x2,x3}. Such constraint would be reduced into P1={x1,x2}, P2={x1,x2}, P3={x3}, so x3 will be placed to P3 next (of course in practice much more complicated scenarios arise).
+ - The search doesn't go just horizontally/vertically as usually, instead it selects the position with minimal number of possibilities at given time.
+ - Constraint reduction is used before choosing next position to reduce number of required positions to check. If, for example, we have three pieces x1, x2, x3 and positions P1, P2, P3, where set of possible pieces in that positions are P1={x1,x2}, P2={x1,x2} and P3={x1,x2,x3}. Such constraint would be reduced into P1={x1,x2}, P2={x1,x2}, P3={x3}, so x3 will be placed to P3 next (of course in practice much more complicated scenarios arise).
  - Calculation of visited nodes in the search space, see ExplRat(io) and ExplAbs in the window title
  - Flag for finalizing of the board by placing remaining pieces if number of placed pieces gets above certain threshold (the rest can be improved by running swapping algorithm on the result)
 
 Run swapping algorithm on saved position (maximizes the current board score by swapping pieces):
 
-`python swaping.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv -load [saved csv file]`
+`python swapping.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv -load [saved csv file]`
 
 The algorithm uses some heuristics for move choice, but it seems to be reliably reaching score above 400 from random position. It can be also usually used to slightly improve scores of previously reached states.
 
