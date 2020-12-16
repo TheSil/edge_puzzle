@@ -31,7 +31,7 @@ class BoardUi:
         # load color images
         color_images = {}
         for i in range(1, 22 + 1):
-            color_images[i] = pygame.image.load(r'data\patterns\color%i.png' % i)
+            color_images[i] = pygame.image.load(r'data\patterns\pattern%i.png' % i)
 
         # construct individual piece images
         color_dim = color_images[1].get_height()
