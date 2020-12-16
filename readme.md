@@ -77,6 +77,8 @@ Try solving the puzzle yourself by swapping individual pieces:
 
 `python play.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
 
+<img src="./data/preview_play.png">
+
 All pieces are on board, you can use following keys:
 
 | key | function |
@@ -90,3 +92,5 @@ Note that after swapping two pieces, the game might currently automatically appl
 Run basic backtracker (super slow!):
 
 `python backtracking.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
+
+<img src="./data/preview_backtracking.png">

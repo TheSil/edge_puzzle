@@ -1,17 +1,19 @@
-from core.defs import PieceRef, N, E, S, W
-import networkx as nx
 import math
 from decimal import Decimal
+
+import networkx as nx
+
+from core.defs import PieceRef, N, E, S, W
+
 
 class NoSolution(Exception):
     pass
 
+
 def reduce_edges(top, down, edges):
-
-
     # creating bipartite graph
     G = nx.Graph()
-    G.add_nodes_from(top, bipartite=0) # Add the node attribute "bipartite"
+    G.add_nodes_from(top, bipartite=0)  # Add the node attribute "bipartite"
     G.add_nodes_from(down, bipartite=1)
     G.add_edges_from(edges)
 
@@ -20,13 +22,13 @@ def reduce_edges(top, down, edges):
 
     # the algorithm returns edges as a dictionary for nodes from each side,
     # so the maximal required is two times the number of nodes (in either group)
-    if len(max) < 2*len(top):
+    if len(max) < 2 * len(top):
         raise NoSolution("no solution exists")
 
     # generate directed graph corresponding to the matching
     G0 = nx.DiGraph()
     for x in top:
-        G0.add_edge(x,max[x])
+        G0.add_edge(x, max[x])
     for node in down:
         G0.add_node(node)
     for e in G.edges(down):
@@ -48,21 +50,21 @@ def reduce_edges(top, down, edges):
                 used.add(e)
         else:
             for node in component.nodes:
+                if node in max:
+                    used.add((node, max[node]))
                 break
-            if node in max:
-                used.add((node, max[node]))
 
     to_remove = dict()
     for e in G.edges():
-        if e not in used and (e[1],e[0]) not in used:
+        if e not in used and (e[1], e[0]) not in used:
             if e[0] not in to_remove:
                 to_remove[e[0]] = set()
             to_remove[e[0]].add(e[1])
 
     return to_remove
 
-class Backtracker:
 
+class Backtracker:
     SEARCHING = 0
     BACKTRACKING = 1
     FINALIZING = 2
@@ -76,7 +78,7 @@ class Backtracker:
                  find_all=False,
                  grid_file=None):
         # pre-calculated factorials
-        self.fact = [math.factorial(i) for i in range(4*256+1)] # 4 times for each rotation
+        self.fact = [math.factorial(i) for i in range(4 * 256 + 1)]  # 4 times for each rotation
         self.enable_finalizing = enable_finalizing
         self.constraint_reducing = constraint_reducing
         self.connecting = connecting
@@ -92,11 +94,11 @@ class Backtracker:
         self.state = self.SEARCHING
         for i in range(self.board.puzzle_def.height):
             for j in range(self.board.puzzle_def.width):
-                if not pieces_map or (i,j) in pieces_map:
-                    self.unvisited[i,j] = 0
+                if not pieces_map or (i, j) in pieces_map:
+                    self.unvisited[i, j] = 0
         self.visited = list()
         self.placed_ids = set()
-        #self.unplaced_ids = set()
+        # self.unplaced_ids = set()
         self.unplaced_corners_ids = set()
         self.unplaced_corners = set()
         for piece in self.board.puzzle_def.corners:
@@ -118,13 +120,13 @@ class Backtracker:
         self.forbidden = {}
         for i in range(self.board.puzzle_def.height):
             for j in range(self.board.puzzle_def.width):
-                self.forbidden[i,j] = dict()
+                self.forbidden[i, j] = dict()
         self.backtracked_position = None
-        self.explored = [0]*len(self.board.puzzle_def.all)
+        self.explored = [0] * len(self.board.puzzle_def.all)
         self.explored_max = self.fact[4] \
                             * self.fact[len(self.board.puzzle_def.edges)] \
-                            * self.fact[len(self.board.puzzle_def.inner)]\
-                            * (4**len(self.board.puzzle_def.inner))
+                            * self.fact[len(self.board.puzzle_def.inner)] \
+                            * (4 ** len(self.board.puzzle_def.inner))
 
         # pre-place hints
         for hint in self.board.puzzle_def.hints:
@@ -168,7 +170,7 @@ class Backtracker:
             for piece in to_remove:
                 self.unplaced_inner.remove(piece)
 
-            if (i,j) in self.unvisited:
+            if (i, j) in self.unvisited:
                 del self.unvisited[i, j]
             self.visited.append((i, j))
             self.board.marks[i][j] = id
@@ -181,7 +183,7 @@ class Backtracker:
                     fields = line.strip().split(",")
                     for i, field in enumerate(fields):
                         fields[i] = int(field)
-                    self.grid_scores[fields[0],fields[1]] = fields[2]
+                    self.grid_scores[fields[0], fields[1]] = fields[2]
 
         self.board.fix_orientation()
 
@@ -195,7 +197,7 @@ class Backtracker:
         # updated explored statistics
         self.explored[stack_pos] += self.fact[len(self.unplaced_corners_ids)] \
                                     * self.fact[len(self.unplaced_edges_ids)] \
-                                    * self.fact[len(self.unplaced_inner_ids)] * (4**len(self.unplaced_inner_ids))
+                                    * self.fact[len(self.unplaced_inner_ids)] * (4 ** len(self.unplaced_inner_ids))
         self.explored[stack_pos + 1] = 0
 
         if stack_pos not in self.forbidden[removing]:
@@ -278,8 +280,8 @@ class Backtracker:
         if not ignore_impossible and self.constraint_reducing:
             # # reduce the domain using Regin's algorithm for alldifferences constraint filtering
             # # 1. formulate constraints as nodes and edges
-            top = list() # positions
-            down = list(set(range(1,len(self.board.puzzle_def.all) + 1)) - self.placed_ids) # piece id's
+            top = list()  # positions
+            down = list(set(range(1, len(self.board.puzzle_def.all) + 1)) - self.placed_ids)  # piece id's
             edges = []
             for unvisited in self.unvisited:
                 if self.feasible_pieces[unvisited]:
@@ -305,7 +307,6 @@ class Backtracker:
                     for to_remove in to_remove_refs:
                         self.feasible_pieces[pos].remove(to_remove)
                         reduced_something = True
-
 
         # reduce the constraints for domains which occur too often
         # (e.g. if three positions all have domain {2,3}, then this is impossible
@@ -363,7 +364,7 @@ class Backtracker:
 
             if score == self.best_score and self.best_unplaced_container == possible:
                 self.best_feasible_locations.append((i, j))
-            elif (self.best_score == -1 or score < self.best_score)\
+            elif (self.best_score == -1 or score < self.best_score) \
                     and (not ignore_impossible or score > 0):
                 self.best_score = score
                 for p in self.feasible_pieces[i, j]:
@@ -389,7 +390,7 @@ class Backtracker:
         self.board.marks[i][j] = ref.piece_def.id
         if self.backtracked_position and self.backtracked_position != (i, j):
             raise Exception("Removing backtracking position when placing piece?!?")
-            self.forbidden[self.backtracked_position].clear()
+            #self.forbidden[self.backtracked_position].clear()
         self.backtracked_position = None
         self.placed_ids.add(ref.piece_def.id)
 
@@ -404,7 +405,7 @@ class Backtracker:
             if self.best_score == -1:
                 self.state = self.BACKTRACKING
             else:
-                i =j = -1
+                i = j = -1
                 piece = None
                 # select place with most neighbours, so that we at least put near
                 # to already filled board
@@ -417,7 +418,7 @@ class Backtracker:
                         most_neighbours = count
                         for best_piece in self.feasible_pieces[i, j]:
                             break
-                        best_coord = (i,j)
+                        best_coord = (i, j)
                         if most_neighbours == 4:
                             break
                 self.place(best_coord[0], best_coord[1], best_piece)
@@ -452,7 +453,7 @@ class Backtracker:
                 else:
                     self.state = self.BACKTRACKING
 
-                #self.backtrack()
+                # self.backtrack()
                 return False
 
             # from the set of selected pieces, select one with least number
@@ -462,14 +463,14 @@ class Backtracker:
             # for best_feasible_piece in self.feasible_pieces[i,j]:
             #     break
 
-            #counts = {}
+            # counts = {}
             if self.grid_scores:
                 max_score = -1
                 max_repre = None
-                for i,j in self.best_feasible_locations:
-                    for piece in self.feasible_pieces[i,j]:
+                for i, j in self.best_feasible_locations:
+                    for piece in self.feasible_pieces[i, j]:
                         score = 0
-                        for neighbour in self.board.enumerate_neigbours(i,j,diagonal=True):
+                        for neighbour in self.board.enumerate_neigbours(i, j, diagonal=True):
                             if (piece.piece_def.id, neighbour.piece_def.id) in self.grid_scores:
                                 score += self.grid_scores[piece.piece_def.id, neighbour.piece_def.id]
                             else:
@@ -481,7 +482,7 @@ class Backtracker:
 
                         if score > max_score:
                             max_score = score
-                            max_repre = [i,j,piece]
+                            max_repre = [i, j, piece]
 
                 i = max_repre[0]
                 j = max_repre[1]
@@ -516,11 +517,11 @@ class Backtracker:
 
     def can_be_placed_at(self, piece, i, j):
         if i > 0:
-            up = self.board.board[i-1][j]
+            up = self.board.board[i - 1][j]
             if up and up.get_color(S) != piece.get_color(N):
-                    return False
+                return False
         if j > 0:
-            left = self.board.board[i][j-1]
+            left = self.board.board[i][j - 1]
             if left and left.get_color(E) != piece.get_color(W):
                 return False
         height = self.board.puzzle_def.height
@@ -535,30 +536,30 @@ class Backtracker:
                 return False
 
         # corners/edges special checks
-        if i==0:
-            if j==0:
+        if i == 0:
+            if j == 0:
                 if piece.dir != E:
                     return False
-            elif j==width-1:
-                if  piece.dir != S:
+            elif j == width - 1:
+                if piece.dir != S:
                     return False
             else:
                 if piece.dir != E:
                     return False
-        elif i==height-1:
-            if j==0:
+        elif i == height - 1:
+            if j == 0:
                 if piece.dir != N:
                     return False
-            elif j==width-1:
+            elif j == width - 1:
                 if piece.dir != W:
                     return False
             else:
                 if piece.dir != W:
                     return False
-        elif j==0:
+        elif j == 0:
             if piece.dir != N:
                 return False
-        elif j==width-1:
+        elif j == width - 1:
             if piece.dir != S:
                 return False
 
@@ -568,4 +569,4 @@ class Backtracker:
         return Decimal(sum(self.explored))
 
     def explored_ratio(self):
-        return self.explored_count()/Decimal(self.explored_max)
+        return self.explored_count() / Decimal(self.explored_max)
