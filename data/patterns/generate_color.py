@@ -8,7 +8,7 @@ class SquarePattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (DIM, DIM), fill=self.color1))
         dwg.add(dwg.rect((20, 20), (80, 80), fill=self.color2))
         dwg.add(dwg.rect((40, 40), (40, 40), fill=self.color1))
@@ -20,7 +20,7 @@ class MultiSquarePattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
         dwg.add(dwg.rect((30, 30), (60, 60), fill=self.color2))
         dwg.add(dwg.rect((15, 15), (30, 30), fill=self.color2))
@@ -35,7 +35,7 @@ class PlusPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
         dwg.add(dwg.circle((60, 60), 50, fill=self.color2))
         dwg.add(dwg.rect((50, 30), (20, 60), fill=self.color1))
@@ -48,7 +48,7 @@ class RoundCrossPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
 
         dwg.add(dwg.circle((30, 30), 18, fill=self.color2))
@@ -65,7 +65,7 @@ class CrossPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
 
         points = ((15,15),(45,15),(60, 45),(60, 60),(45, 60),(15,45))
@@ -81,7 +81,7 @@ class StarPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
 
         R = 52
@@ -104,7 +104,7 @@ class CircleSubtractPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         clip_path = dwg.defs.add(dwg.clipPath(id='clipsq'))
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
@@ -124,7 +124,7 @@ class FlowerPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
         dwg.add(dwg.circle((40, 40), 23, fill=self.color2))
         dwg.add(dwg.circle((80, 40), 23, fill=self.color2))
@@ -139,7 +139,7 @@ class CircleSubtractPattern2:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         clip_path = dwg.defs.add(dwg.clipPath(id='clipsq'))
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
@@ -161,7 +161,7 @@ class CircleSubtractPattern3:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         clip_path = dwg.defs.add(dwg.clipPath(id='clipsq'))
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
@@ -192,7 +192,7 @@ class CircleSubtractPattern4:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename)
+        dwg = svgwrite.Drawing(filename, size=('120', '120'))
         clip_path = dwg.defs.add(dwg.clipPath(id='clipsq'))
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
