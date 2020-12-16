@@ -1,15 +1,6 @@
 import random
-
+import argparse
 from core.defs import E, S, W, N
-
-# free parameters
-height = 16
-width = 16
-unique_edge_colors_count = 5
-unique_inner_colors_count = 17
-# empty list will make the algorithm make any number of colors
-color_counts = [12, 12, 12, 12, 12, 24, 24, 24, 25, 25, 25, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25]
-
 
 # actual pieces init - color lists in clock-wise order
 class PieceDef:
@@ -236,15 +227,37 @@ def has_duplicates(container):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-height', type=int, default=16, help='Height')
+    parser.add_argument('-width', type=int, default=16, help='Width')
+    parser.add_argument('-colors_edge', type=int, default=5, help='Unique color on edge')
+    parser.add_argument('-colors_inner', type=int, default=17, help='Unique colors inside')
+    parser.add_argument('-colors_edge_counts', type=str, default="12, 12, 12, 12, 12",
+                        help='Specific counts for individual edge color')
+    parser.add_argument('-colors_inner_counts', type=str, default="24, 24, 24, 25, 25, 25, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25",
+                        help='Specific counts for individual inner color')
+    parser.add_argument('-no_duplicates', type=bool, default=True, help='Flag to avoid duplicate pieces.')
+    args = parser.parse_args()
+
+    edge_counts = [int(item) for item in args.colors_edge_counts.split(',')]
+    inner_counts = [int(item) for item in args.colors_inner_counts.split(',')]
+    color_counts = edge_counts + inner_counts
+
+    height = args.height
+    width = args.width
+    unique_edge_colors_count = args.colors_edge
+    unique_inner_colors_count = args.colors_inner
+    no_duplicates = args.no_duplicates
+
     generated = False
     while not generated:
         board, corners, edges, inner = generate_puzzle(height, width, unique_edge_colors_count,
                                                        unique_inner_colors_count,
                                                        color_counts)
-
-        if has_duplicates(corners) or has_duplicates(edges) or has_duplicates(inner):
-            print("duplicates found, repeating...")
-            continue
+        if no_duplicates:
+            if has_duplicates(corners) or has_duplicates(edges) or has_duplicates(inner):
+                print("duplicates found, repeating...")
+                continue
 
         break
 
