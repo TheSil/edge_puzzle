@@ -390,7 +390,7 @@ class Backtracker:
         self.board.marks[i][j] = ref.piece_def.id
         if self.backtracked_position and self.backtracked_position != (i, j):
             raise Exception("Removing backtracking position when placing piece?!?")
-            #self.forbidden[self.backtracked_position].clear()
+            # self.forbidden[self.backtracked_position].clear()
         self.backtracked_position = None
         self.placed_ids.add(ref.piece_def.id)
 

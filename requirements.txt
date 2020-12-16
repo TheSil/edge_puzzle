@@ -1,3 +1,4 @@
 pygame
 deap
 svgwrite
+networkx
