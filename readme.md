@@ -94,3 +94,27 @@ Run basic backtracker (super slow!):
 `python backtracking.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
 
 <img src="./data/preview_backtracking.png">
+
+All pieces are on board, you can use following keys:
+
+| key | function |
+| --- | --- |
+| i | show/hide pieces numbers   |
+| s | save the current board state to a file |
+
+Some additional backtracker features:
+
+ - It does not go just horizontally, instead it fills a position with minimal number of possibilities at given time
+ - Constraint reduction is used before choosing next position, this reduces number of required positions. For example, say we have three pieces x1, x2, x3 and positons P1, P2, P3, where set of possible pieces in that positions are P1={x1,x2}, P2={x1,x2} and P3={x1,x2,x3}. Such constraint would be reduced into P1={x1,x2}, P2={x1,x2}, P3={x3}, so x3 will be placed to P3 next (of course in practice much more complicated scenarios arise).
+ - Calculation of visited nodes in the search space, see ExplRat(io) and ExplAbs in the window title
+ - Flag for finalizing of the board by placing remaining pieces if number of placed pieces gets above certain threshold (the rest can be improved by running swapping algorithm on the result)
+
+Run swapping algorithm on saved position (maximizes the current board score by swapping pieces):
+
+`python swaping.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv -load [saved csv file]`
+
+The algorithm uses some heuristics for move choice, but it seems to be reliably reaching score above 400 from random position. It can be also usually used to slightly improve scores of previously reached states.
+
+Finally you can also try not very effective genetic algorithm:
+
+`python genetic_algorithm.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
