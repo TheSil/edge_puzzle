@@ -48,7 +48,8 @@ class PuzzleDefinition:
         self.pieces = []
         self.hints = []
         with open(filename, "r") as f:
-            height, width, edge_colors, inner_colors = f.readline().strip().split(",")
+            header = f.readline().strip().split(",")
+            height, width, edge_colors, inner_colors = header[0], header[1], header[2], header[3]
             self.height = int(height)
             self.width = int(width)
             self.edge_colors = int(edge_colors)
