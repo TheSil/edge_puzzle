@@ -54,9 +54,39 @@ So the piece 139 is placed at the 8 (indexed from 0) from top and 7 position fro
 
 Hints definitions for the original puzzle can be found in [eternity2_256_hints.csv](./data/eternity2/eternity2_256_hints.csv).
 
+# Dependencies
+
+Install Python dependencies using
+
+`python -m pip install -r requirements.txt`
 
 
+# Run
 
+There are various useful utility scripts to run. Following are some examples.
 
+Show list of pieces from definition:
 
+`python show_pieces.py -conf data/eternity2/eternity2_256.csv`
 
+Show list of hints:
+
+`python show_pieces.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
+
+Try solving the puzzle yourself by swapping individual pieces:
+
+`python play.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
+
+All pieces are on board, you can use following keys:
+
+| key | function |
+| --- | --- |
+| i | show/hide pieces numbers   |
+| mouse left click | select source/destination piece for swap   |
+| mouse right click | rotate the selected piece   |
+
+Note that after swapping two pieces, the game might currently automatically apply the best rotation (to maximize score)
+
+Run basic backtracker (super slow!):
+
+`python backtracking.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
