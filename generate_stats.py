@@ -19,8 +19,8 @@ OFFSET_NEXT4 = 16
 
 
 import argparse
-import board
-from defs import PuzzleDefinition
+from core import board
+from core.defs import PuzzleDefinition
 
 if __name__ == '__main__':
 

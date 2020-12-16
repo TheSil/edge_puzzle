@@ -1,15 +1,14 @@
 import argparse
 import sys
 import time
-import copy
-import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W
-from backtracker import Backtracker
-import ui
-import board
 import uuid
-from pygame.locals import *
 
+import pygame.locals
+
+from backtracker import Backtracker
+from core import board
+from core.defs import PuzzleDefinition
+from ui import ui
 
 if __name__ == '__main__':
 
@@ -38,11 +37,11 @@ if __name__ == '__main__':
     running_min = 0
     running_sec = 0
 
-    #thresholds = [(20, 100), (60,250), (300,300), (600,400), (1200,415)]
+    # thresholds = [(20, 100), (60,250), (300,300), (600,400), (1200,415)]
     thresholds = [(60, 400), (1200, 415)]
 
-    #keep_threshold = 415
-    #time_threshold = 20*60
+    # keep_threshold = 415
+    # time_threshold = 20*60
 
     next_threshold_idx = 0
 
@@ -54,10 +53,10 @@ if __name__ == '__main__':
             ui.update()
             best = board.evaluate()
             if best >= thresholds[-1][1]:
-                board.save("save "+str(uuid.uuid4())+"_" + str(best) + ".csv")
+                board.save("save " + str(uuid.uuid4()) + "_" + str(best) + ".csv")
             # we fill in remaining pieces to have a slightly better score
 
-        if time.time() >= next_check and next_check != -1:
+        if time.time() >= next_check != -1:
             if best < thresholds[next_threshold_idx][1]:
                 print(f"{best} is not good enough, restarting backtracker")
                 best = 0
@@ -68,7 +67,6 @@ if __name__ == '__main__':
             else:
                 print(f"threshold {thresholds[next_threshold_idx][1]} passed")
                 next_threshold_idx += 1
-
 
             if next_threshold_idx < len(thresholds):
                 next_check = start + thresholds[next_threshold_idx][0]
@@ -90,6 +88,3 @@ if __name__ == '__main__':
             running_sec = running % 60
         pygame.display.set_caption(f'S {best}/{board.max_score()} {running_min}:{running_sec:02} (restarting)')
         pygame.display.update()
-
-
-

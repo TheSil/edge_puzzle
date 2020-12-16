@@ -2,14 +2,11 @@ import argparse
 import sys
 import time
 import copy
-import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W
+import pygame.locals
+from core.defs import PuzzleDefinition
 from backtracker import Backtracker
-import ui
-import board
-import uuid
-from pygame.locals import *
-
+from ui import ui
+from core import board
 
 if __name__ == '__main__':
 

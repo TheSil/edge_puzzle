@@ -1,10 +1,6 @@
 import argparse
-import sys
-import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W
-import ui
-import board
-from pygame.locals import *
+from core.defs import PuzzleDefinition, PieceRef, N, E, S, W
+from core import board
 
 
 class BacktrackerLocal:

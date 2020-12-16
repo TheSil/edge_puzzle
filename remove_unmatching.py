@@ -1,15 +1,12 @@
 import argparse
 import sys
 import time
-from collections import deque
-import copy
 import random
 import uuid
-import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W, TYPE_CORNER, TYPE_EDGE, TYPE_INNER
+import pygame.locals
+from core.defs import PuzzleDefinition, N, E, S, W, TYPE_CORNER, TYPE_EDGE
 import ui
-import board
-from pygame.locals import *
+from core import board
 
 if __name__ == '__main__':
 

@@ -1,12 +1,9 @@
 import sys
 import argparse
-from defs import PuzzleDefinition, TYPE_CORNER, TYPE_EDGE, TYPE_INNER
-import board
-import ui
-import pygame
-from pygame.locals import *
-
-
+from core.defs import PuzzleDefinition, TYPE_CORNER, TYPE_EDGE
+from core import board
+from ui import ui
+import pygame.locals
 
 if __name__ == '__main__':
 

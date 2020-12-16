@@ -6,10 +6,10 @@ import copy
 import random
 import uuid
 import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W, TYPE_CORNER, TYPE_EDGE, TYPE_INNER
-import ui
-import board
-from pygame.locals import *
+from core.defs import PuzzleDefinition, PieceRef, N, E, S, W, TYPE_CORNER, TYPE_EDGE
+from ui import ui
+from core import board
+
 
 class Replacer:
 

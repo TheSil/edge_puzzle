@@ -1,12 +1,10 @@
 import random
 import sys
 import argparse
-import numpy
-from defs import PuzzleDefinition, PieceRef, N, E, S, W
-from ui import BoardUi
-from board import Board
-import pygame
-from pygame.locals import *
+from core.defs import PuzzleDefinition, PieceRef
+from ui.ui import BoardUi
+from core.board import Board
+import pygame.locals
 
 from deap import algorithms
 from deap import base

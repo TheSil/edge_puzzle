@@ -1,7 +1,6 @@
-from defs import PuzzleDefinition, PieceRef, N, E, S, W
+from core.defs import PieceRef, N, E, S, W
 import networkx as nx
 import math
-import random
 from decimal import Decimal
 
 class NoSolution(Exception):

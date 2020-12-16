@@ -1,14 +1,12 @@
 import argparse
 import sys
 import random
-import time
 import uuid
 import copy
-import pygame
-from defs import PuzzleDefinition, PieceRef, N, E, S, W, TYPE_CORNER, TYPE_EDGE, TYPE_INNER
-import ui
-import board
-from pygame.locals import *
+import pygame.locals
+from core.defs import PuzzleDefinition, N, E, S, W, TYPE_CORNER, TYPE_EDGE
+from ui import ui
+from core import board
 
 
 class Swapper:

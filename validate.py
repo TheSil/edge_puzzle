@@ -1,8 +1,6 @@
-import random
 import argparse
-import pygame
 from pygame.locals import *
-from defs import PieceDef, PuzzleDefinition, PieceRef, N, E, S, W
+from core.defs import PuzzleDefinition
 
 if __name__ == '__main__':
 

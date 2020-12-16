@@ -1,1 +1,1 @@
-python backtracking_restarting.py -conf d:\Git\edge_puzzle\data\eternity2\eternity2_256.csv -hints d:\Git\edge_puzzle\data\eternity2\eternity2_256_hints.csv
+python backtracking_restarting.py -conf data\eternity2\eternity2_256.csv -hints data\eternity2\eternity2_256_hints.csv

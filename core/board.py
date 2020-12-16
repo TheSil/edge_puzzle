@@ -1,5 +1,5 @@
 import random
-from defs import PieceRef, N, E, S, W
+from core.defs import PieceRef, N, E, S, W
 
 class Board:
     def __init__(self, puzzle_def):

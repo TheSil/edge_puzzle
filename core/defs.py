@@ -11,7 +11,7 @@ TYPE_INNER = 2
 class PieceDef:
     def __init__(self, id, E=0, S=0, W=0, N=0):
         self.id = id
-        self.colors = [E,S,W,N]
+        self.colors = [E, S, W, N]
         gray_count = self.colors.count(0)
         if gray_count == 2:
             self.type = TYPE_CORNER
@@ -31,6 +31,7 @@ class PieceDef:
 
     def __repr__(self):
         return str(self.colors)
+
 
 class PuzzleDefinition:
     def __init__(self):
@@ -59,7 +60,7 @@ class PuzzleDefinition:
                 line = f.readline().strip()
                 items = line.split(",")
                 items = [int(x) if x else 0 for x in items]
-                items.extend([0] * (5 - len(items))) # 1 id and 4 colors
+                items.extend([0] * (5 - len(items)))  # 1 id and 4 colors
                 new_piece = PieceDef(*items)
                 self.all[new_piece.id] = new_piece
 
@@ -78,7 +79,8 @@ class PuzzleDefinition:
                     j = int(j)
                     piece_id = int(piece_id)
                     piece_orientation = int(piece_orientation)
-                    self.hints.append((i, j, piece_id, piece_orientation) )
+                    self.hints.append((i, j, piece_id, piece_orientation))
+
 
 class PieceRef:
     def __init__(self, piece_def, dir, i, j):
