@@ -79,7 +79,7 @@ Try solving the puzzle yourself by swapping individual pieces:
 
 <img src="./data/preview_play.png">
 
-All pieces are on board, you can use following keys:
+All pieces are placed on board. You can use following keys:
 
 | key | function |
 | --- | --- |
@@ -95,7 +95,7 @@ Run basic backtracker (super slow!):
 
 <img src="./data/preview_backtracking.png">
 
-All pieces are on board, you can use following keys:
+You can use following keys:
 
 | key | function |
 | --- | --- |
@@ -118,3 +118,9 @@ The algorithm uses some heuristics for move choice, but it seems to be reliably 
 Finally you can also try not very effective genetic algorithm:
 
 `python genetic_algorithm.py -conf data/eternity2/eternity2_256.csv -hints data/eternity2/eternity2_256_hints.csv`
+
+It is also possible to generate custom puzzles (thus having known solution, useful for analyzes/trainings):
+
+`python puzzle_generator.py`
+
+Currently, it has puzzle specification directly in the script file (includes board height, width, and number of individual inner patterns).
