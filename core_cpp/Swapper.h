@@ -15,7 +15,7 @@ public:
 
 private:
 
-    enum {
+    enum class PieceType {
         CORNERS = 0,
         EDGES = 1,
         INNER = 2
@@ -40,8 +40,10 @@ private:
 
     void Shuffle();
 
+    void Shuffle(std::vector< Board::BoardLoc* >& locations, int count);
+
 private:
-    enum State {
+    enum class State {
         QUICK_SWAPPING = 0,
         RANDOM_SHUFFLING = 1,
         RANDOM_RECOVERING = 2

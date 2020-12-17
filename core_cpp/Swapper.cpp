@@ -7,7 +7,7 @@ using namespace edge;
 
 Swapper::Swapper(const Board& board)
     : board(board.Clone()), board_backup(nullptr),
-    state(QUICK_SWAPPING), max_score(0), score_before(0),
+    state(State::QUICK_SWAPPING), max_score(0), score_before(0),
     quick_swapping_counter(0), recovering_counter(0)
 {
 }
@@ -16,7 +16,7 @@ void Swapper::DoSwap()
 {
     switch (state)
     {
-    case edge::Swapper::QUICK_SWAPPING:
+    case State::QUICK_SWAPPING:
     {
         DoQuickSwaps();
         int score = board->GetScore();
@@ -30,21 +30,21 @@ void Swapper::DoSwap()
             quick_swapping_counter -= 1;
             if (quick_swapping_counter <= 0) {
                 LDEBUG("QUICK_SWAPPING not successful, switching to RANDOM_SHUFFLING\n");
-                state = RANDOM_SHUFFLING;
+                state = State::RANDOM_SHUFFLING;
                 quick_swapping_counter = 3;
             }
         }
     }
     break;
-    case edge::Swapper::RANDOM_SHUFFLING:
+    case State::RANDOM_SHUFFLING:
     {
         recovering_counter = 2;
         Shuffle();
         score_before = board->GetScore();
-        state = RANDOM_RECOVERING;
+        state = State::RANDOM_RECOVERING;
     }
     break;
-    case edge::Swapper::RANDOM_RECOVERING:
+    case State::RANDOM_RECOVERING:
     {
         // we have been shuffled, and trying to recover
         DoQuickSwaps();
@@ -53,7 +53,7 @@ void Swapper::DoSwap()
             // shuffle succeeded, try regular quick swapping again
             LDEBUG("RANDOM_RECOVERING successful, reached %i > %i, trying QUICK_SWAPPING again\n",
                 score, max_score);
-            state = QUICK_SWAPPING;
+            state = State::QUICK_SWAPPING;
         }
         else if (score > score_before) {
             LDEBUG("RANDOM_RECOVERING locally improving %i -> %i, we keep shuffling\n",
@@ -67,7 +67,7 @@ void Swapper::DoSwap()
                 if (score < max_score) {
                     board = board_backup->Clone();
                 }
-                state = RANDOM_SHUFFLING;
+                state = State::RANDOM_SHUFFLING;
             }
         }
         score_before = score;
@@ -88,7 +88,7 @@ bool Swapper::DoQuickSwaps()
 {
     int before = board->GetScore();
     int max_after = before;
-    std::array<int, 3> seq = { CORNERS , EDGES , INNER };
+    std::array<PieceType, 3> seq = { PieceType::CORNERS , PieceType::EDGES , PieceType::INNER };
     std::random_shuffle(seq.begin(), seq.end());
     std::vector<
         std::pair<Board::BoardLoc*,
@@ -98,13 +98,13 @@ bool Swapper::DoQuickSwaps()
         bool found = false;
         switch (type)
         {
-        case CORNERS:
+        case PieceType::CORNERS:
             found = DoQuickSwapsCorners(max_after, same_score_pieces_pairs);
             break;
-        case EDGES:
+        case PieceType::EDGES:
             found = DoQuickSwapsEdges(max_after, same_score_pieces_pairs);
             break;
-        case INNER:
+        case PieceType::INNER:
             found = DoQuickSwapsInners(max_after, same_score_pieces_pairs);
             break;
         default:
@@ -324,27 +324,25 @@ void Swapper::Shuffle()
     if (rand() % 2 == 1) {
         LDEBUG("shuffling random inner pieces...\n");
         auto& locations = board->GetInners();
-        std::vector<int> indicies(locations.size());
-        std::iota(indicies.begin(), indicies.end(), 0);
-        std::random_shuffle(indicies.begin(), indicies.end());
-        auto first = std::move(locations[indicies[0]]->ref);
-        for (int i = 0; i < 5 - 1; ++i) {
-            locations[indicies[i]]->ref = std::move(locations[indicies[i + 1]]->ref);
-        }
-        locations[indicies[5 - 1]]->ref = std::move(first);
+        Shuffle(locations, 5);
     }
     else {
         LDEBUG("shuffling random edge pieces...\n");
-        auto& locations = board->GetEdges();
-        std::vector<int> indicies(locations.size());
-        std::iota(indicies.begin(), indicies.end(), 0);
-        std::random_shuffle(indicies.begin(), indicies.end());
-        auto first = std::move(locations[indicies[0]]->ref);
-        for (int i = 0; i < 10 - 1; ++i) {
-            locations[indicies[i]]->ref = std::move(locations[indicies[i + 1]]->ref);
-        }
-        locations[indicies[10 - 1]]->ref = std::move(first);
+        auto& locations = board->GetEdges(); 
+        Shuffle(locations, 10);
     }
     board->AdjustDirBorder();
     board->AdjustDirInner();
+}
+
+void Swapper::Shuffle(std::vector< Board::BoardLoc* >& locations, int count)
+{
+    std::vector<int> indicies(locations.size());
+    std::iota(indicies.begin(), indicies.end(), 0);
+    std::random_shuffle(indicies.begin(), indicies.end());
+    auto first = std::move(locations[indicies[0]]->ref);
+    for (int i = 0; i < count - 1; ++i) {
+        locations[indicies[i]]->ref = std::move(locations[indicies[i + 1]]->ref);
+    }
+    locations[indicies[count - 1]]->ref = std::move(first);
 }
