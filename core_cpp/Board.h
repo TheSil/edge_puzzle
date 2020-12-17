@@ -27,17 +27,45 @@ public:
 
         BoardLoc(const BoardLoc& other) : hint(other.hint), x(other.x), y(other.y)
         {
-            // need to be relinked
+            // ref ignored, it is always empty during copy/assignment, must be relinked
+            // same for neighbours
             neighbours[0] = 0;
             neighbours[1] = 0;
             neighbours[2] = 0;
             neighbours[3] = 0;
         }
+
+        BoardLoc& operator= (const BoardLoc& other)
+        {
+            // ref ignored, it is always empty during copy/assignment, must be relinked
+            // same for neighbours
+            if (this != &other)
+            {
+                hint = other.hint;
+                x = other.x;
+                y = other.y;
+
+                neighbours[0] = 0;
+                neighbours[1] = 0;
+                neighbours[2] = 0;
+                neighbours[3] = 0;
+            }
+
+            return *this;
+        }
+    };
+
+    struct State {
+        std::vector< std::vector<
+            BoardLoc > > board;
+        std::vector< BoardLoc* > locations;
     };
 
     Board(const PuzzleDef* def);
 
-    Board(const Board& other);
+    State Backup();
+
+    void Restore(State& state);
 
     void Randomize();
 
@@ -50,8 +78,6 @@ public:
     int GetScore() const;
 
     int GetScore(BoardLoc* loc);
-
-    std::unique_ptr<Board> Clone() const;
 
     std::vector< std::pair<int, int> >& GetCornersCoords();
 
@@ -75,14 +101,12 @@ private:
 private:
 
     const PuzzleDef* def;
-    std::vector< std::vector<
-        BoardLoc > > board;
+    State state;
 
     // fast access piece indices
     std::vector< int > corners_ids;
     std::vector< int > edges_ids;
     std::vector< int > inner_ids;
-    std::vector< BoardLoc* > locations;
 
     // fast access coordinates
     std::vector< std::pair<int, int> > corners;

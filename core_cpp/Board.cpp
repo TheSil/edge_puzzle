@@ -13,11 +13,11 @@ int ScoreBetween(const Board::BoardLoc* loc) {
 Board::Board(const PuzzleDef* def)
     : def(def)
 {
-    board.resize(def->GetHeight());
-    for (size_t x = 0; x < board.size(); ++x)
+    state.board.resize(def->GetHeight());
+    for (size_t x = 0; x < state.board.size(); ++x)
     {
-        board[x].resize(def->GetWidth());
-        auto& row = board[x];
+        state.board[x].resize(def->GetWidth());
+        auto& row = state.board[x];
         for (size_t y = 0; y < row.size(); ++y) {
             row[y].x = static_cast<int>(x);
             row[y].y = static_cast<int>(y);
@@ -37,7 +37,7 @@ Board::Board(const PuzzleDef* def)
     }
 
     for (auto& hint : def->GetHints()) {
-        board[hint.x][hint.y].hint = &hint;
+        state.board[hint.x][hint.y].hint = &hint;
     }
 
     corners.clear();
@@ -76,21 +76,14 @@ Board::Board(const PuzzleDef* def)
     UpdateIds();
 }
 
-Board::Board(const Board& other) :
-    def(other.def), board(other.board), corners_ids(other.corners_ids),
-    edges_ids(other.edges_ids), inner_ids(other.inner_ids), corners(other.corners),
-    edges(other.edges), inner(other.inner), top_edges(other.top_edges),
-    bottom_edges(other.bottom_edges), left_edges(other.left_edges),
-    right_edges(other.right_edges)
+Board::State Board::Backup()
 {
-    for (int x = 0; x < def->GetHeight(); ++x) {
-        for (int y = 0; y < def->GetWidth(); ++y) {
-            if (other.board[x][y].ref) {
-                board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(*other.board[x][y].ref));
-            }
-        }
-    }
+    return State(this->state);
+}
 
+void Board::Restore(State& state)
+{
+    this->state = state;
     UpdateLinks();
     UpdateIds();
 }
@@ -99,10 +92,10 @@ void Board::UpdateLinks()
 {
     for (int i = 0; i < def->GetHeight(); ++i) {
         for (int j = 0; j < def->GetWidth(); ++j) {
-            board[i][j].neighbours[NORTH] = (i > 0) ? &board[i - 1][j] : nullptr;
-            board[i][j].neighbours[SOUTH] = (i < def->GetHeight() - 1) ? &board[i + 1][j] : nullptr;
-            board[i][j].neighbours[WEST] = (j > 0) ? &board[i][j - 1] : nullptr;
-            board[i][j].neighbours[EAST] = (j < def->GetWidth() - 1) ? &board[i][j + 1] : nullptr;
+            state.board[i][j].neighbours[NORTH] = (i > 0) ? &state.board[i - 1][j] : nullptr;
+            state.board[i][j].neighbours[SOUTH] = (i < def->GetHeight() - 1) ? &state.board[i + 1][j] : nullptr;
+            state.board[i][j].neighbours[WEST] = (j > 0) ? &state.board[i][j - 1] : nullptr;
+            state.board[i][j].neighbours[EAST] = (j < def->GetWidth() - 1) ? &state.board[i][j + 1] : nullptr;
         }
     }
 }
@@ -111,13 +104,13 @@ void Board::UpdateIds()
 {
     // TODO: another access to number of pieces?
     auto pieces_count = def->GetCorners().size() + def->GetEdges().size() + def->GetInner().size();
-    locations.resize(pieces_count + 1); // id's are one indexed
+    state.locations.resize(pieces_count + 1); // id's are one indexed
 
     for (int i = 0; i < def->GetHeight(); ++i) {
         for (int j = 0; j < def->GetWidth(); ++j) {
-            if (board[i][j].ref)
+            if (state.board[i][j].ref)
             {
-                locations[board[i][j].ref->GetId()] = &board[i][j];
+                state.locations[state.board[i][j].ref->GetId()] = &state.board[i][j];
             }
         }
     }
@@ -137,39 +130,39 @@ void Board::Randomize()
     auto edges_it = edges_copy.begin();
     auto inner_it = inner_copy.begin();
 
-    board[0][0].ref =
+    state.board[0][0].ref =
         std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, EAST));
-    board[0][def->GetWidth() - 1].ref =
+    state.board[0][def->GetWidth() - 1].ref =
         std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, SOUTH));
-    board[def->GetHeight() - 1][0].ref =
+    state.board[def->GetHeight() - 1][0].ref =
         std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, NORTH));
-    board[def->GetHeight() - 1][def->GetWidth() - 1].ref =
+    state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref =
         std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, WEST));
 
     for (auto dest : top_edges) {
-        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, EAST));
+        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, EAST));
     }
     for (auto dest : bottom_edges) {
-        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, WEST));
+        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, WEST));
     }
     for (auto dest : left_edges) {
-        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, NORTH));
+        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, NORTH));
     }
     for (auto dest : right_edges) {
-        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, SOUTH));
+        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, SOUTH));
     }
     for (auto dest : inner) {
-        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*inner_it++, rand() % 4));
+        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*inner_it++, rand() % 4));
     }
 
     UpdateIds();
 
     for (int x = 0; x < def->GetHeight(); ++x) {
         for (int y = 0; y < def->GetWidth(); ++y) {
-            if (board[x][y].hint) {
-                int hint_id = board[x][y].hint->id;
-                auto& current_hint_loc = locations[hint_id];
-                SwapLocations(current_hint_loc, &board[x][y]);
+            if (state.board[x][y].hint) {
+                int hint_id = state.board[x][y].hint->id;
+                auto& current_hint_loc = state.locations[hint_id];
+                SwapLocations(current_hint_loc, &state.board[x][y]);
             }
         }
     }
@@ -177,22 +170,22 @@ void Board::Randomize()
 
 void Board::AdjustDirBorder()
 {
-    board[0][0].ref->SetDir(EAST);
-    board[0][def->GetWidth() - 1].ref->SetDir(SOUTH);
-    board[def->GetHeight() - 1][0].ref->SetDir(NORTH);
-    board[def->GetHeight() - 1][def->GetWidth() - 1].ref->SetDir(WEST);
+    state.board[0][0].ref->SetDir(EAST);
+    state.board[0][def->GetWidth() - 1].ref->SetDir(SOUTH);
+    state.board[def->GetHeight() - 1][0].ref->SetDir(NORTH);
+    state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref->SetDir(WEST);
 
     for (auto dest : top_edges) {
-        board[dest.first][dest.second].ref->SetDir(EAST);
+        state.board[dest.first][dest.second].ref->SetDir(EAST);
     }
     for (auto dest : bottom_edges) {
-        board[dest.first][dest.second].ref->SetDir(WEST);
+        state.board[dest.first][dest.second].ref->SetDir(WEST);
     }
     for (auto dest : left_edges) {
-        board[dest.first][dest.second].ref->SetDir(NORTH);
+        state.board[dest.first][dest.second].ref->SetDir(NORTH);
     }
     for (auto dest : right_edges) {
-        board[dest.first][dest.second].ref->SetDir(SOUTH);
+        state.board[dest.first][dest.second].ref->SetDir(SOUTH);
     }
 }
 
@@ -203,7 +196,7 @@ void Board::AdjustDirInner()
     while (did_change) {
         did_change = false;
         for (auto dest : inner) {
-            if (AdjustDirInner(&board[dest.first][dest.second]))
+            if (AdjustDirInner(&state.board[dest.first][dest.second]))
             {
                 did_change = true;
             }
@@ -222,12 +215,12 @@ int Board::GetScore() const
     int score = 0;
     for (int x = 0; x < def->GetHeight(); ++x) {
         for (int y = 0; y < def->GetWidth() - 1; ++y) {
-            score += ScoreBetween<EAST, WEST>(&board[x][y]);
+            score += ScoreBetween<EAST, WEST>(&state.board[x][y]);
         }
     }
     for (int x = 0; x < def->GetHeight() - 1; ++x) {
         for (int y = 0; y < def->GetWidth(); ++y) {
-            score += ScoreBetween<SOUTH, NORTH>(&board[x][y]);
+            score += ScoreBetween<SOUTH, NORTH>(&state.board[x][y]);
         }
     }
     return score;
@@ -241,12 +234,6 @@ int Board::GetScore(BoardLoc* loc)
     score += ScoreBetween<SOUTH, NORTH>(loc);
     score += ScoreBetween<NORTH, SOUTH>(loc);
     return score;
-}
-
-std::unique_ptr<Board> Board::Clone() const
-{
-    std::unique_ptr<Board> copy = std::unique_ptr<Board>(new Board(*this));
-    return copy;
 }
 
 std::vector< std::pair<int, int> >& Board::GetCornersCoords()
@@ -266,7 +253,7 @@ std::vector< std::pair<int, int> >& Board::GetInnersCoords()
 
 std::vector< Board::BoardLoc* >& Board::GetLocations()
 {
-    return locations;
+    return state.locations;
 }
 
 

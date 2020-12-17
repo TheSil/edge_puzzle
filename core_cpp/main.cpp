@@ -7,7 +7,9 @@
 int main()
 {
     std::random_device rd;
-    srand(rd());
+    unsigned int seed = rd();
+    printf("seed: %u\n", seed);
+    srand(seed);
     edge::PuzzleDef def = edge::PuzzleDef::Load(
         R"(d:\Git\edge_puzzle\data\eternity2\eternity2_256.csv)",
         R"(d:\Git\edge_puzzle\data\eternity2\eternity2_256_hints.csv)");

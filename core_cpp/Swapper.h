@@ -7,7 +7,7 @@ namespace edge {
 class Swapper
 {
 public:
-    Swapper(const Board& board);
+    Swapper(Board& board);
 
     void DoSwap();
 
@@ -53,8 +53,8 @@ private:
     std::vector< int > swappable_edges;
     std::vector< int > swappable_inners;
 
-    std::unique_ptr<Board> board;
-    std::unique_ptr<Board> board_backup;
+    Board& board;
+    Board::State board_backup;
     State state;
     int max_score;
     int score_before;
