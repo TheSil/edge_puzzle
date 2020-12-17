@@ -345,6 +345,7 @@ void Board::SwapLocations(Board::BoardLoc* loc1,
     Board::BoardLoc* loc2)
 {
     auto& locs = GetLocations();
+    locs[0] = nullptr; // used only to swap zero for non-existent pieces
     auto id1 = (loc1->ref) ? loc1->ref->GetId() : 0;
     auto id2 = (loc2->ref) ? loc2->ref->GetId() : 0;
     std::swap(locs[id1], locs[id2]);
