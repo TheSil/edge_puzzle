@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
     board.fix_orientation()
     ui.update()
+    print(f"score:{board.evaluate()}")
 
     while True:
         for event in pygame.event.get():

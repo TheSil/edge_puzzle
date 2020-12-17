@@ -66,6 +66,11 @@ int PuzzleDef::GetPieceCount() const
     return static_cast<int>(all.size());
 }
 
+PieceDef PuzzleDef::GetPieceDef(int id) const
+{
+    return all.at(id);
+}
+
 const std::vector<PieceDef>& PuzzleDef::GetCorners() const
 {
     return corners;

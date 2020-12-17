@@ -43,6 +43,8 @@ public:
 
     void AdjustDirInner();
 
+    void PutPiece(int id, int x, int y, int dir);
+
     const PuzzleDef* GetPuzzleDef() const;
 
     int GetScore() const;
@@ -59,6 +61,8 @@ public:
 
     void SwapLocations(Board::BoardLoc* loc1,
         Board::BoardLoc* loc2);
+
+    BoardLoc* GetLocation(int x, int y);
 
 private:
 

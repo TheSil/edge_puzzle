@@ -133,7 +133,16 @@ void Board::Save(const std::string& filename)
 
 void Board::Load(const std::string& filename)
 {
+    std::ifstream file(filename);
+    std::string line;
+    std::vector<int> vals;
 
+    while (getline(file, line)) {
+        vals.clear();
+        ParseNumberLine(line, vals);
+        vals.resize(4, 0);
+        PutPiece(vals[2], vals[0], vals[1], vals[3]);
+    }
 }
 
 Board::State Board::Backup()
@@ -268,6 +277,18 @@ void Board::AdjustDirInner()
     }
 }
 
+void Board::PutPiece(int id, int x, int y, int dir)
+{
+    if (state.locations[id]) {
+        // alrady placed, swap positions
+        SwapLocations(state.locations[id], &state.board[x][y]);
+        state.board[x][y].ref->SetDir(dir);
+    } else {
+        state.board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(def->GetPieceDef(id), dir));
+    }
+    state.locations[id] = &state.board[x][y];
+}
+
 const PuzzleDef* Board::GetPuzzleDef() const
 {
     return def;
@@ -324,8 +345,20 @@ void Board::SwapLocations(Board::BoardLoc* loc1,
     Board::BoardLoc* loc2)
 {
     auto& locs = GetLocations();
-    std::swap(locs[loc1->ref->GetId()], locs[loc2->ref->GetId()]);
+    if (loc1->ref)
+    {
+        locs[loc1->ref->GetId()] = loc2;
+    }
+    if (loc2->ref)
+    {
+        locs[loc2->ref->GetId()] = loc1;
+    }
     std::swap(loc1->ref, loc2->ref);
+}
+
+Board::BoardLoc* Board::GetLocation(int x, int y)
+{
+    return &state.board[x][y];
 }
 
 bool Board::AdjustDirInner(BoardLoc* loc)

@@ -5,19 +5,87 @@
 #include "Swapper.h"
 
 
-int main()
+int main(int argc, char* argv[])
 {
     std::random_device rd;
     unsigned int seed = rd();
     printf("seed: %u\n", seed);
     srand(seed);
-    edge::PuzzleDef def = edge::PuzzleDef::Load(
-        R"(d:\Git\edge_puzzle\data\eternity2\eternity2_256.csv)",
-        R"(d:\Git\edge_puzzle\data\eternity2\eternity2_256_hints.csv)");
+    // generate prefix for saves
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    std::string prefix;
+    prefix.resize(8);
+    for (int i = 0; i < prefix.size(); ++i)
+    {
+        prefix[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    printf("save_prefix: %s\n", prefix.c_str());
+
+    // fixed arguments for now
+    if (argc <= 1) {
+        printf("Missing puzzle definition argument\n");
+        return 1;
+    }
+
+    std::string def_file = argv[1];
+    std::string hints_file = "";
+    if (argc > 2) {
+        hints_file = argv[2];
+    }
+
+    edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
-    board.Randomize();
-    board.AdjustDirBorder();
-    board.AdjustDirInner();
+
+    std::string load_file = "";
+    if (argc > 3) {
+        load_file = argv[3];
+        board.Load(load_file);
+        // some save files have missing pieces,
+        // but swapper expects filled board
+        for (auto& piece : def.GetCorners())
+        {
+            if (!board.GetLocations()[piece.id]) {
+                for (auto& coord : board.GetCornersCoords()) {
+                    auto loc = board.GetLocation(coord.first, coord.second);
+                    if (!loc->ref) {
+                        board.PutPiece(piece.id, loc->x, loc->y, 0);
+                    }
+                }
+            }
+        }
+        for (auto& piece : def.GetEdges())
+        {
+            if (!board.GetLocations()[piece.id]) {
+                for (auto& coord : board.GetEdgesCoords()) {
+                    auto loc = board.GetLocation(coord.first, coord.second);
+                    if (!loc->ref) {
+                        board.PutPiece(piece.id, loc->x, loc->y, 0);
+                    }
+                }
+            }
+        }
+        for (auto& piece : def.GetInner())
+        {
+            if (!board.GetLocations()[piece.id]) {
+                for (auto& coord : board.GetInnersCoords()) {
+                    auto loc = board.GetLocation(coord.first, coord.second);
+                    if (!loc->ref) {
+                        board.PutPiece(piece.id, loc->x, loc->y, 0);
+                    }
+                }
+            }
+        }
+        board.AdjustDirBorder();
+    }
+    else {
+        board.Randomize();
+        board.AdjustDirBorder();
+        board.AdjustDirInner();
+    }
+
     int score = board.GetScore();
     int max_score = score;
     printf("score: %i\n", score);
@@ -30,7 +98,7 @@ int main()
             max_score = score;
             if (score > 400) {
                 std::stringstream ss;
-                ss << "save_" << score << ".csv";
+                ss << prefix << "_save_" << score << ".csv";
                 board.Save(ss.str());
             }
         }
