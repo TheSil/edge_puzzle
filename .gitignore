@@ -1,3 +1,9 @@
 .idea/
 records/
 *.pyc
+
+.vs/
+x64/
+release/
+debug/
+*.user
