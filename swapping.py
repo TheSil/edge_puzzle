@@ -62,7 +62,7 @@ class Swapper:
     def shuffle(self):        # bring little bit of chaos sometimes (sort of mutation)
         # shuffle random pieces
         if random.randint(1,2) == 1:
-            print("shuffling random inner pieces...")
+            #print("shuffling random inner pieces...")
             inners = set(self.board.enumerate_inner())
             inners = list(inners)
             inners = inners[:5]
@@ -81,7 +81,7 @@ class Swapper:
                 self.board.board[i][j].i = i
                 self.board.board[i][j].j = j
         else:
-            print("shuffling random edge pieces...")
+            #print("shuffling random edge pieces...")
             inners = set(self.board.enumerate_edges())
             inners = list(inners)
             inners = inners[:10]
@@ -264,13 +264,13 @@ class Swapper:
             return True
 
         # If we've got here, nothing more to do
-        print("Can't find anything else...")
+        #print("Can't find anything else...")
 
         if same_indices:
             # crazy variant, lets shuffle all the indicies we can -> temporaririly can decrease the score though
             random.shuffle(same_indices)
             for same_pair in same_indices[:10]:
-                print(f"... exchanging pieces {same_pair[0]} with {same_pair[1]} with same result to give chance of swing into another possibilities")
+                #print(f"... exchanging pieces {same_pair[0]} with {same_pair[1]} with same result to give chance of swing into another possibilities")
                 board.exchange(*same_pair[0], *same_pair[1])
                 board.marks[same_pair[0][0]][same_pair[0][1]], board.marks[same_pair[1][0]][same_pair[1][1]] = \
                     board.marks[same_pair[1][0]][same_pair[1][1]], board.marks[same_pair[0][0]][same_pair[0][1]]
@@ -321,16 +321,16 @@ class Swapper:
             score = self.board.evaluate()
             if score > self.max_score:
                 # shuffle succeeded, try regular quick swapping again
-                print(f"RANDOM_RECOVERING successful, reached {score} > {self.max_score}, trying QUICK_SWAPPING again")
+                #print(f"RANDOM_RECOVERING successful, reached {score} > {self.max_score}, trying QUICK_SWAPPING again")
                 self.state = self.QUICK_SWAPPING
             elif score > self.score_before:
                 # we are improving at least, keep shuffling...
-                print(f"RANDOM_RECOVERING locally improving {self.score_before} -> {score}, we keep shuffling")
+                #print(f"RANDOM_RECOVERING locally improving {self.score_before} -> {score}, we keep shuffling")
                 self.recovering_counter = 2
             else:
                 self.recovering_counter -= 1
                 if self.recovering_counter >= 0:
-                    print(f"RANDOM_RECOVERING not successful, going back to RANDOM_SHUFFLING")
+                    #print(f"RANDOM_RECOVERING not successful, going back to RANDOM_SHUFFLING")
                     # we did not get back where we were originally, restore backup and try again
                     if score < self.max_score:
                         # restore backup, but only if we have not reached at least the same score
@@ -386,7 +386,7 @@ class Swapper:
 
                     after = board.evaluate()
                     if after > before:
-                        print(f"double swap success {swap1id1}{swap1id2}{swap2id1}{swap2id2} score {before} -> {after}")
+                        #print(f"double swap success {swap1id1}{swap1id2}{swap2id1}{swap2id2} score {before} -> {after}")
                         raise Exception()
 
                     # second swap back
@@ -416,7 +416,7 @@ class Swapper:
 
                         after = board.evaluate()
                         if after > before:
-                            print(f"triple swap success {swap1id1}{swap1id2}{swap2id1}{swap2id2}{swap3id1}{swap3id2} score {before} -> {after}")
+                            #print(f"triple swap success {swap1id1}{swap1id2}{swap2id1}{swap2id2}{swap3id1}{swap3id2} score {before} -> {after}")
                             raise Exception()
 
                         # third swap back
