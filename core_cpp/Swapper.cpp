@@ -278,7 +278,6 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
             std::swap(loc1->ref, loc2->ref);
             loc1->ref->SetDir(orig_dir1);
             loc2->ref->SetDir(orig_dir2);
-            board->AdjustDirInner();
         }
     }
 

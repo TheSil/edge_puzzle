@@ -242,8 +242,8 @@ class Swapper:
                                     #     same_indices.append((inner1, inner2))
 
                                     if piece_score_after > piece_score_best_after:
-                                        print(
-                                            f"Switching {inner1} <-> {inner2}, score {piece_score_before} to {piece_score_after}")
+                                        #print(
+                                        #    f"Switching {inner1} <-> {inner2}, score {piece_score_before} to {piece_score_after}")
                                         piece_score_best_after = piece_score_after
                                         self.board.heuristic_orientation()
                                         raise Exception()
@@ -257,7 +257,6 @@ class Swapper:
 
                             self.board.board[inner1[0]][inner1[1]].dir = orig_dir1
                             self.board.board[inner2[0]][inner2[1]].dir = orig_dir2
-                            self.board.heuristic_orientation()
 
         except:
             # we find something, cool...
@@ -288,7 +287,7 @@ class Swapper:
             # board.heuristic_orientation()
             # return True
         else:
-            print("... and no pieces with same score!")
+            #print("... and no pieces with same score!")
             return False
 
     def do_swap(self):
@@ -297,14 +296,14 @@ class Swapper:
             self.quick_swaps()
             score = self.board.evaluate()
             if score > self.max_score:
-                print(f"Best score improved to {score}")
+                #print(f"Best score improved to {score}")
                 self.quick_swapping_counter = 3
                 self.max_score = score
                 self.board_backup = copy.deepcopy(self.board)
             else:
                 self.quick_swapping_counter -= 1
                 if self.quick_swapping_counter <= 0:
-                    print(f"QUICK_SWAPPING not successful, switching to RANDOM_SHUFFLING")
+                    #print(f"QUICK_SWAPPING not successful, switching to RANDOM_SHUFFLING")
                     # quick swapping failing for too long, try shuffling now...
                     self.state = self.RANDOM_SHUFFLING
                     # reset some states stuff just in case
