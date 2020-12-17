@@ -4,10 +4,10 @@ from core.defs import PieceRef, N, E, S, W
 class Board:
     def __init__(self, puzzle_def):
         self.puzzle_def = puzzle_def
-        self.board = [self.puzzle_def.width*[None] for i in range(self.puzzle_def.height)]
+        self.board = [self.puzzle_def.width*[None] for _ in range(self.puzzle_def.height)]
         self.board_by_id = {}
-        self.marks = [self.puzzle_def.width * [None] for i in range(self.puzzle_def.height)]
-        self.hints = [self.puzzle_def.width*[None] for i in range(self.puzzle_def.height)]
+        self.marks = [self.puzzle_def.width * [None] for _ in range(self.puzzle_def.height)]
+        self.hints = [self.puzzle_def.width*[None] for _ in range(self.puzzle_def.height)]
         # place the hints
         for i, j, hint_id, hint_orientation in puzzle_def.hints:
             self.hints[i][j] = puzzle_def.all[hint_id]

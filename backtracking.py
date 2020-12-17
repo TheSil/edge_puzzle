@@ -37,7 +37,7 @@ if __name__ == '__main__':
     backtracker = Backtracker(board,
                               enable_finalizing=False,
                               constraint_reducing=(not args.disable_reducing),
-                              connecting=False,
+                              connecting=True,
                               grid_file=args.stats)
     start = time.time()
     running_min = 0
