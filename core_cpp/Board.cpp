@@ -345,14 +345,9 @@ void Board::SwapLocations(Board::BoardLoc* loc1,
     Board::BoardLoc* loc2)
 {
     auto& locs = GetLocations();
-    if (loc1->ref)
-    {
-        locs[loc1->ref->GetId()] = loc2;
-    }
-    if (loc2->ref)
-    {
-        locs[loc2->ref->GetId()] = loc1;
-    }
+    auto id1 = (loc1->ref) ? loc1->ref->GetId() : 0;
+    auto id2 = (loc2->ref) ? loc2->ref->GetId() : 0;
+    std::swap(locs[id1], locs[id2]);
     std::swap(loc1->ref, loc2->ref);
 }
 
