@@ -6,7 +6,7 @@
 using namespace edge;
 
 Swapper::Swapper(Board& board)
-    : board(board), 
+    : board(board),
     state(State::QUICK_SWAPPING), max_score(0), score_before(0),
     quick_swapping_counter(0), recovering_counter(0)
 {
@@ -25,8 +25,8 @@ Swapper::Swapper(Board& board)
     // remove hints
     for (auto& hintDef : this->board.GetPuzzleDef()->GetHints()) {
         swappable_corners.erase(
-            std::remove(swappable_corners.begin(), 
-                swappable_corners.end(), 
+            std::remove(swappable_corners.begin(),
+                swappable_corners.end(),
                 hintDef.id),
             swappable_corners.end());
 
@@ -109,11 +109,6 @@ void Swapper::DoSwap()
         break;
     }
 
-}
-
-const Board* Swapper::GetCurrentBoard()
-{
-    return &board;
 }
 
 bool Swapper::DoQuickSwaps()

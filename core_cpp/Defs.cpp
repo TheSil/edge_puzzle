@@ -4,25 +4,6 @@
 
 using namespace edge;
 
-PieceDef::PieceDef(int id, int east, int south, int west, int north)
-    : id(id)
-{
-    patterns[0] = east;
-    patterns[1] = south;
-    patterns[2] = west;
-    patterns[3] = north;
-}
-
-int PieceDef::GetPattern(int idx) const
-{
-    return patterns[idx];
-}
-
-void PieceDef::SetPattern(int idx, int pattern)
-{
-    patterns[idx] = pattern;
-}
-
 PieceRef::PieceRef(PieceDef def, int dir)
     : def(def), dir(dir)
 {
@@ -30,12 +11,12 @@ PieceRef::PieceRef(PieceDef def, int dir)
 
 int PieceRef::GetPattern(int pos) const
 {
-    return def.GetPattern((pos - dir + 4) % 4);
+    return def.patterns[(pos - dir + 4) % 4];
 }
 
 void PieceRef::SetPattern(int pos, int pattern)
 {
-    return def.SetPattern((pos - dir + 4) % 4, pattern);
+    def.patterns[(pos - dir + 4) % 4] = pattern;
 }
 
 int PieceRef::GetDir() const

@@ -20,12 +20,14 @@ enum Dir
 struct PieceDef
 {
     PieceDef(int id = -1,
-        int east = 0, int south = 0, int west = 0, int north = 0);
-
-    // tbd remove setters/getters
-    int GetPattern(int idx) const;
-
-    void SetPattern(int idx, int pattern);
+        int east = 0, int south = 0, int west = 0, int north = 0)
+        : id(id)
+    {
+        patterns[0] = east;
+        patterns[1] = south;
+        patterns[2] = west;
+        patterns[3] = north;
+    }
 
     int id;
     uint8_t patterns[4];

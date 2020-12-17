@@ -11,8 +11,6 @@ public:
 
     void DoSwap();
 
-    const Board* GetCurrentBoard();
-
 private:
 
     enum class PieceType {

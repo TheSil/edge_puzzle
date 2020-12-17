@@ -24,7 +24,7 @@ public:
     struct State {
         std::vector< std::vector<
             BoardLoc > > board;
-        std::vector< BoardLoc* > locations;
+        std::vector< BoardLoc* > locations_per_id;
     };
 
     Board(const PuzzleDef* def);
@@ -33,9 +33,9 @@ public:
 
     void Load(const std::string& filename);
 
-    State Backup();
+    Board::State Backup();
 
-    void Restore(State& state);
+    void Restore(Board::State& state);
 
     void Randomize();
 
@@ -75,7 +75,7 @@ private:
 private:
 
     const PuzzleDef* def;
-    State state;
+    Board::State state;
 
     // fast access piece indices
     std::vector< int > corners_ids;

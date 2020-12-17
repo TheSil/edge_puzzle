@@ -172,13 +172,13 @@ void Board::UpdateLinks()
 void Board::UpdateIds()
 {
     auto pieces_count = def->GetPieceCount();
-    state.locations.resize(pieces_count + 1); // id's are one indexed
+    state.locations_per_id.resize(pieces_count + 1); // id's are one indexed
 
     for (int i = 0; i < def->GetHeight(); ++i) {
         for (int j = 0; j < def->GetWidth(); ++j) {
             if (state.board[i][j].ref)
             {
-                state.locations[state.board[i][j].ref->GetId()] = &state.board[i][j];
+                state.locations_per_id[state.board[i][j].ref->GetId()] = &state.board[i][j];
             }
         }
     }
@@ -230,7 +230,7 @@ void Board::Randomize()
             auto& loc = state.board[x][y];
             if (loc.hint) {
                 int hint_id = loc.hint->id;
-                auto& current_hint_loc = state.locations[hint_id];
+                auto& current_hint_loc = state.locations_per_id[hint_id];
                 SwapLocations(current_hint_loc, &loc);
                 if (loc.hint->dir != -1) {
                     loc.ref->SetDir((loc.hint->dir));
@@ -279,14 +279,14 @@ void Board::AdjustDirInner()
 
 void Board::PutPiece(int id, int x, int y, int dir)
 {
-    if (state.locations[id]) {
+    if (state.locations_per_id[id]) {
         // alrady placed, swap positions
-        SwapLocations(state.locations[id], &state.board[x][y]);
+        SwapLocations(state.locations_per_id[id], &state.board[x][y]);
         state.board[x][y].ref->SetDir(dir);
     } else {
         state.board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(def->GetPieceDef(id), dir));
     }
-    state.locations[id] = &state.board[x][y];
+    state.locations_per_id[id] = &state.board[x][y];
 }
 
 const PuzzleDef* Board::GetPuzzleDef() const
@@ -337,9 +337,8 @@ std::vector< std::pair<int, int> >& Board::GetInnersCoords()
 
 std::vector< Board::BoardLoc* >& Board::GetLocations()
 {
-    return state.locations;
+    return state.locations_per_id;
 }
-
 
 void Board::SwapLocations(Board::BoardLoc* loc1,
     Board::BoardLoc* loc2)
