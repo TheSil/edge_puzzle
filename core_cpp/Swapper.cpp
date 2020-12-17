@@ -10,6 +10,38 @@ Swapper::Swapper(const Board& board)
     state(State::QUICK_SWAPPING), max_score(0), score_before(0),
     quick_swapping_counter(0), recovering_counter(0)
 {
+    for (auto& pieceDef : this->board->GetPuzzleDef()->GetCorners()) {
+        swappable_corners.push_back(pieceDef.id);
+    }
+
+    for (auto& pieceDef : this->board->GetPuzzleDef()->GetEdges()) {
+        swappable_edges.push_back(pieceDef.id);
+    }
+
+    for (auto& pieceDef : this->board->GetPuzzleDef()->GetInner()) {
+        swappable_inners.push_back(pieceDef.id);
+    }
+
+    // remove hints
+    for (auto& hintDef : this->board->GetPuzzleDef()->GetHints()) {
+        swappable_corners.erase(
+            std::remove(swappable_corners.begin(), 
+                swappable_corners.end(), 
+                hintDef.id),
+            swappable_corners.end());
+
+        swappable_edges.erase(
+            std::remove(swappable_edges.begin(),
+                swappable_edges.end(),
+                hintDef.id),
+            swappable_edges.end());
+
+        swappable_inners.erase(
+            std::remove(swappable_inners.begin(),
+                swappable_inners.end(),
+                hintDef.id),
+            swappable_inners.end());
+    }
 }
 
 void Swapper::DoSwap()
@@ -126,8 +158,8 @@ bool Swapper::DoQuickSwaps()
             LDEBUG("... exchanging pieces (%i, %i) with (%i, %i) with same result "
                 "to give chance of swing into another possibilities\n",
                 pair.first->x, pair.first->y, pair.second->x, pair.second->y);
-            std::swap(same_score_pieces_pairs[k].first->ref,
-                same_score_pieces_pairs[k].second->ref);
+            board->SwapLocations(same_score_pieces_pairs[k].first,
+                same_score_pieces_pairs[k].second);
         }
 
         board->AdjustDirBorder();
@@ -143,20 +175,23 @@ bool Swapper::DoQuickSwapsCorners(int score_to_beat, std::vector<
     std::pair<Board::BoardLoc*,
     Board::BoardLoc*>>&same_score_pieces_pairs)
 {
-    auto& cont = board->GetCorners();
+    auto& cont = swappable_corners;
     std::vector<size_t> idx(cont.size());
     std::iota(idx.begin(), idx.end(), 0);
     std::vector<size_t> vals(cont.size());
+    auto& locs = board->GetLocations();
     for (size_t i = 0; i < cont.size(); ++i) {
-        vals[i] = board->GetScore(cont[i]);
+        vals[i] = board->GetScore(locs[cont[i]]);
     }
     std::stable_sort(idx.begin(), idx.end(),
         [&vals](size_t i1, size_t i2) {return vals[i1] < vals[i2]; });
     for (size_t idx1 = 1; idx1 < idx.size(); ++idx1)
     {
+        auto& loc1 = locs[cont[idx[idx1]]];
         for (size_t idx2 = 0; idx2 < idx1; ++idx2)
         {
-            std::swap(cont[idx[idx1]]->ref, cont[idx[idx2]]->ref);
+            auto& loc2 = locs[cont[idx[idx2]]];
+            board->SwapLocations(loc1, loc2);
             board->AdjustDirBorder();
             int after = board->GetScore();
             if (after > score_to_beat)
@@ -168,10 +203,10 @@ bool Swapper::DoQuickSwapsCorners(int score_to_beat, std::vector<
             {
                 same_score_pieces_pairs.push_back(
                     std::pair<Board::BoardLoc*,
-                    Board::BoardLoc* >(cont[idx[idx1]], cont[idx[idx2]]));
+                    Board::BoardLoc* >(loc1, loc2));
             }
 
-            std::swap(cont[idx[idx1]]->ref, cont[idx[idx2]]->ref);
+            board->SwapLocations(loc1, loc2);
         }
     }
 
@@ -182,20 +217,23 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
     std::pair<Board::BoardLoc*,
     Board::BoardLoc*>>&same_score_pieces_pairs)
 {
-    auto& cont = board->GetEdges();
+    auto& cont = swappable_edges;
     std::vector<size_t> idx(cont.size());
     std::iota(idx.begin(), idx.end(), 0);
     std::vector<size_t> vals(cont.size());
+    auto& locs = board->GetLocations();
     for (size_t i = 0; i < cont.size(); ++i) {
-        vals[i] = board->GetScore(cont[i]);
+        vals[i] = board->GetScore(locs[cont[i]]);
     }
     std::stable_sort(idx.begin(), idx.end(),
         [&vals](size_t i1, size_t i2) {return vals[i1] < vals[i2]; });
     for (size_t idx1 = 1; idx1 < idx.size(); ++idx1)
     {
+        auto& loc1 = locs[cont[idx[idx1]]];
         for (size_t idx2 = 0; idx2 < idx1; ++idx2)
         {
-            std::swap(cont[idx[idx1]]->ref, cont[idx[idx2]]->ref);
+            auto& loc2 = locs[cont[idx[idx2]]];
+            board->SwapLocations(loc1, loc2);
             board->AdjustDirBorder();
             int after = board->GetScore();
             if (after > score_to_beat)
@@ -207,10 +245,10 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
             {
                 same_score_pieces_pairs.push_back(
                     std::pair<Board::BoardLoc*,
-                    Board::BoardLoc* >(cont[idx[idx1]], cont[idx[idx2]]));
+                    Board::BoardLoc* >(loc1, loc2));
             }
 
-            std::swap(cont[idx[idx1]]->ref, cont[idx[idx2]]->ref);
+            board->SwapLocations(loc1, loc2);
         }
     }
 
@@ -221,21 +259,22 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
     std::pair<Board::BoardLoc*,
     Board::BoardLoc*>>&same_score_pieces_pairs)
 {
-    auto& cont = board->GetInners();
+    auto& cont = swappable_inners;
     std::vector<size_t> idx(cont.size());
     std::iota(idx.begin(), idx.end(), 0);
     std::vector<size_t> vals(cont.size());
+    auto& locs = board->GetLocations();
     for (size_t i = 0; i < cont.size(); ++i) {
-        vals[i] = board->GetScore(cont[i]);
+        vals[i] = board->GetScore(locs[cont[i]]);
     }
     std::stable_sort(idx.begin(), idx.end(),
         [&vals](size_t i1, size_t i2) {return vals[i1] < vals[i2]; });
     for (size_t idx1 = 1; idx1 < idx.size(); ++idx1)
     {
-        auto loc1 = cont[idx[idx1]];
+        auto loc1 = locs[cont[idx[idx1]]];
         for (size_t idx2 = 0; idx2 < idx1 && vals[idx[idx2]] < 4; ++idx2)
         {
-            auto loc2 = cont[idx[idx2]];
+            auto loc2 = locs[cont[idx[idx2]]];
             int orig_dir1 = loc1->ref->GetDir();
             int orig_dir2 = loc2->ref->GetDir();
             int piece_score_before = board->GetScore(loc1);
@@ -244,7 +283,7 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
                 piece_score_before -= 1;
             }
 
-            std::swap(loc1->ref, loc2->ref);
+            board->SwapLocations(loc1, loc2);
             int piece_score_best_after = piece_score_before;
 
             for (int dir1 = 0; dir1 < 4; ++dir1) {
@@ -275,7 +314,7 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
                 }
             }
 
-            std::swap(loc1->ref, loc2->ref);
+            board->SwapLocations(loc1, loc2);
             loc1->ref->SetDir(orig_dir1);
             loc2->ref->SetDir(orig_dir2);
         }
@@ -323,26 +362,28 @@ void Swapper::Shuffle()
     // shuffle random pieces
     if (rand() % 2 == 1) {
         LDEBUG("shuffling random inner pieces...\n");
-        auto& locations = board->GetInners();
-        Shuffle(locations, 5);
+        auto& ids = swappable_inners;
+        Shuffle(ids, 5);
     }
     else {
         LDEBUG("shuffling random edge pieces...\n");
-        auto& locations = board->GetEdges(); 
-        Shuffle(locations, 10);
+        auto& ids = swappable_edges;
+        Shuffle(ids, 10);
     }
     board->AdjustDirBorder();
     board->AdjustDirInner();
 }
 
-void Swapper::Shuffle(std::vector< Board::BoardLoc* >& locations, int count)
+void Swapper::Shuffle(std::vector< int >& ids, int count)
 {
-    std::vector<int> indicies(locations.size());
+    std::vector<int> indicies(ids.size());
     std::iota(indicies.begin(), indicies.end(), 0);
     std::random_shuffle(indicies.begin(), indicies.end());
-    auto first = std::move(locations[indicies[0]]->ref);
+    auto& locs = board->GetLocations();
+    auto first = std::move(locs[ids[indicies[0]]]->ref);
     for (int i = 0; i < count - 1; ++i) {
-        locations[indicies[i]]->ref = std::move(locations[indicies[i + 1]]->ref);
+        locs[ids[indicies[i]]]->ref = std::move(locs[ids[indicies[i + 1]]]->ref);
     }
-    locations[indicies[count - 1]]->ref = std::move(first);
+    locs[ids[indicies[count - 1]]]->ref = std::move(first);
 }
+

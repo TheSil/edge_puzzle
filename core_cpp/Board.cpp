@@ -19,12 +19,108 @@ Board::Board(const PuzzleDef* def)
         board[x].resize(def->GetWidth());
         auto& row = board[x];
         for (size_t y = 0; y < row.size(); ++y) {
-            row[y].x = x;
-            row[y].y = y;
+            row[y].x = static_cast<int>(x);
+            row[y].y = static_cast<int>(y);
+        }
+    }
+
+    for (const auto& piece : def->GetCorners()) {
+        corners_ids.push_back(piece.id);
+    }
+
+    for (const auto& piece : def->GetEdges()) {
+        edges_ids.push_back(piece.id);
+    }
+
+    for (const auto& piece : def->GetInner()) {
+        inner_ids.push_back(piece.id);
+    }
+
+    for (auto& hint : def->GetHints()) {
+        board[hint.x][hint.y].hint = &hint;
+    }
+
+    corners.clear();
+    edges.clear();
+    inner.clear();
+    top_edges.clear();
+    bottom_edges.clear();
+    left_edges.clear();
+    right_edges.clear();
+
+    corners.push_back(std::pair<int, int>(0, 0));
+    corners.push_back(std::pair<int, int>(0, def->GetWidth() - 1));
+    corners.push_back(std::pair<int, int>(def->GetHeight() - 1, 0));
+    corners.push_back(std::pair<int, int>(def->GetHeight() - 1, def->GetWidth() - 1));
+
+    for (int k = 1; k < def->GetWidth() - 1; ++k) {
+        top_edges.push_back(std::pair<int, int>(0, k));
+        bottom_edges.push_back(std::pair<int, int>(def->GetHeight() - 1, k));
+        edges.push_back(std::pair<int, int>(0, k));
+        edges.push_back(std::pair<int, int>(def->GetHeight() - 1, k));
+    }
+    for (int k = 1; k < def->GetHeight() - 1; ++k) {
+        left_edges.push_back(std::pair<int, int>(k, 0));
+        right_edges.push_back(std::pair<int, int>(k, def->GetWidth() - 1));
+        edges.push_back(std::pair<int, int>(k, 0));
+        edges.push_back(std::pair<int, int>(k, def->GetWidth() - 1));
+    }
+
+    for (int i = 1; i < def->GetHeight() - 1; ++i) {
+        for (int j = 1; j < def->GetWidth() - 1; ++j) {
+            inner.push_back(std::pair<int, int>(i, j));
         }
     }
 
     UpdateLinks();
+    UpdateIds();
+}
+
+Board::Board(const Board& other) :
+    def(other.def), board(other.board), corners_ids(other.corners_ids),
+    edges_ids(other.edges_ids), inner_ids(other.inner_ids), corners(other.corners),
+    edges(other.edges), inner(other.inner), top_edges(other.top_edges),
+    bottom_edges(other.bottom_edges), left_edges(other.left_edges),
+    right_edges(other.right_edges)
+{
+    for (int x = 0; x < def->GetHeight(); ++x) {
+        for (int y = 0; y < def->GetWidth(); ++y) {
+            if (other.board[x][y].ref) {
+                board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(*other.board[x][y].ref));
+            }
+        }
+    }
+
+    UpdateLinks();
+    UpdateIds();
+}
+
+void Board::UpdateLinks()
+{
+    for (int i = 0; i < def->GetHeight(); ++i) {
+        for (int j = 0; j < def->GetWidth(); ++j) {
+            board[i][j].neighbours[NORTH] = (i > 0) ? &board[i - 1][j] : nullptr;
+            board[i][j].neighbours[SOUTH] = (i < def->GetHeight() - 1) ? &board[i + 1][j] : nullptr;
+            board[i][j].neighbours[WEST] = (j > 0) ? &board[i][j - 1] : nullptr;
+            board[i][j].neighbours[EAST] = (j < def->GetWidth() - 1) ? &board[i][j + 1] : nullptr;
+        }
+    }
+}
+
+void Board::UpdateIds()
+{
+    // TODO: another access to number of pieces?
+    auto pieces_count = def->GetCorners().size() + def->GetEdges().size() + def->GetInner().size();
+    locations.resize(pieces_count + 1); // id's are one indexed
+
+    for (int i = 0; i < def->GetHeight(); ++i) {
+        for (int j = 0; j < def->GetWidth(); ++j) {
+            if (board[i][j].ref)
+            {
+                locations[board[i][j].ref->GetId()] = &board[i][j];
+            }
+        }
+    }
 }
 
 void Board::Randomize()
@@ -51,19 +147,31 @@ void Board::Randomize()
         std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, WEST));
 
     for (auto dest : top_edges) {
-        dest->ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, EAST));
+        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, EAST));
     }
     for (auto dest : bottom_edges) {
-        dest->ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, WEST));
+        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, WEST));
     }
     for (auto dest : left_edges) {
-        dest->ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, NORTH));
+        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, NORTH));
     }
     for (auto dest : right_edges) {
-        dest->ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, SOUTH));
+        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, SOUTH));
     }
     for (auto dest : inner) {
-        dest->ref = std::unique_ptr<PieceRef>(new PieceRef(*inner_it++, rand() % 4));
+        board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*inner_it++, rand() % 4));
+    }
+
+    UpdateIds();
+
+    for (int x = 0; x < def->GetHeight(); ++x) {
+        for (int y = 0; y < def->GetWidth(); ++y) {
+            if (board[x][y].hint) {
+                int hint_id = board[x][y].hint->id;
+                auto& current_hint_loc = locations[hint_id];
+                SwapLocations(current_hint_loc, &board[x][y]);
+            }
+        }
     }
 }
 
@@ -75,16 +183,16 @@ void Board::AdjustDirBorder()
     board[def->GetHeight() - 1][def->GetWidth() - 1].ref->SetDir(WEST);
 
     for (auto dest : top_edges) {
-        dest->ref->SetDir(EAST);
+        board[dest.first][dest.second].ref->SetDir(EAST);
     }
     for (auto dest : bottom_edges) {
-        dest->ref->SetDir(WEST);
+        board[dest.first][dest.second].ref->SetDir(WEST);
     }
     for (auto dest : left_edges) {
-        dest->ref->SetDir(NORTH);
+        board[dest.first][dest.second].ref->SetDir(NORTH);
     }
     for (auto dest : right_edges) {
-        dest->ref->SetDir(SOUTH);
+        board[dest.first][dest.second].ref->SetDir(SOUTH);
     }
 }
 
@@ -95,13 +203,18 @@ void Board::AdjustDirInner()
     while (did_change) {
         did_change = false;
         for (auto dest : inner) {
-            if (AdjustDirInner(dest))
+            if (AdjustDirInner(&board[dest.first][dest.second]))
             {
                 did_change = true;
             }
         }
         k += 1;
     }
+}
+
+const PuzzleDef* Board::GetPuzzleDef() const
+{
+    return def;
 }
 
 int Board::GetScore() const
@@ -132,78 +245,42 @@ int Board::GetScore(BoardLoc* loc)
 
 std::unique_ptr<Board> Board::Clone() const
 {
-    std::unique_ptr<Board> copy = std::unique_ptr<Board>(new Board(def));
-    for (int x = 0; x < def->GetHeight(); ++x) {
-        for (int y = 0; y < def->GetWidth(); ++y) {
-            copy->board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(*board[x][y].ref));
-        }
-    }
-    copy->UpdateLinks();
+    std::unique_ptr<Board> copy = std::unique_ptr<Board>(new Board(*this));
     return copy;
 }
 
-std::vector< Board::BoardLoc* >& Board::GetCorners()
+std::vector< std::pair<int, int> >& Board::GetCornersCoords()
 {
     return corners;
 }
 
-std::vector< Board::BoardLoc* >& Board::GetEdges()
+std::vector< std::pair<int, int> >& Board::GetEdgesCoords()
 {
     return edges;
 }
 
-std::vector< Board::BoardLoc* >& Board::GetInners()
+std::vector< std::pair<int, int> >& Board::GetInnersCoords()
 {
     return inner;
 }
 
-void Board::UpdateLinks()
+std::vector< Board::BoardLoc* >& Board::GetLocations()
 {
-    corners.clear();
-    top_edges.clear();
-    bottom_edges.clear();
-    left_edges.clear();
-    right_edges.clear();
-    edges.clear();
-    inner.clear();
+    return locations;
+}
 
-    corners.push_back(&board[0][0]);
-    corners.push_back(&board[0][def->GetWidth() - 1]);
-    corners.push_back(&board[def->GetHeight() - 1][0]);
-    corners.push_back(&board[def->GetHeight() - 1][def->GetWidth() - 1]);
 
-    for (int k = 1; k < def->GetWidth() - 1; ++k) {
-        top_edges.push_back(&board[0][k]);
-        bottom_edges.push_back(&board[def->GetHeight() - 1][k]);
-        edges.push_back(&board[0][k]);
-        edges.push_back(&board[def->GetHeight() - 1][k]);
-    }
-    for (int k = 1; k < def->GetHeight() - 1; ++k) {
-        left_edges.push_back(&board[k][0]);
-        right_edges.push_back(&board[k][def->GetWidth() - 1]);
-        edges.push_back(&board[k][0]);
-        edges.push_back(&board[k][def->GetWidth() - 1]);
-    }
-
-    for (int i = 1; i < def->GetHeight() - 1; ++i) {
-        for (int j = 1; j < def->GetWidth() - 1; ++j) {
-            inner.push_back(&board[i][j]);
-        }
-    }
-
-    for (int i = 0; i < def->GetHeight(); ++i) {
-        for (int j = 0; j < def->GetWidth(); ++j) {
-            board[i][j].neighbours[NORTH] = (i > 0) ? &board[i - 1][j] : nullptr;
-            board[i][j].neighbours[SOUTH] = (i < def->GetHeight() - 1) ? &board[i + 1][j] : nullptr;
-            board[i][j].neighbours[WEST] = (j > 0) ? &board[i][j - 1] : nullptr;
-            board[i][j].neighbours[EAST] = (j < def->GetWidth() - 1) ? &board[i][j + 1] : nullptr;
-        }
-    }
+void Board::SwapLocations(Board::BoardLoc* loc1,
+    Board::BoardLoc* loc2)
+{
+    auto& locs = GetLocations();
+    std::swap(locs[loc1->ref->GetId()], locs[loc2->ref->GetId()]);
+    std::swap(loc1->ref, loc2->ref);
 }
 
 bool Board::AdjustDirInner(BoardLoc* loc)
 {
-    if (!loc->ref) {
+    if (!loc->ref || loc->hint) {
         return false;
     }
 

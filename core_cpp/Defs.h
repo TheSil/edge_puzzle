@@ -17,19 +17,28 @@ enum Dir
     NORTH = 3
 };
 
-class PieceDef
+struct PieceDef
 {
-public:
     PieceDef(int id = -1,
         int east = 0, int south = 0, int west = 0, int north = 0);
 
+    // tbd remove setters/getters
     int GetPattern(int idx) const;
 
     void SetPattern(int idx, int pattern);
 
-private:
     int id;
     uint8_t patterns[4];
+};
+
+struct HintDef
+{
+    HintDef(int x, int y, int id, int dir)
+        : x(x), y(y), id(id), dir(dir)
+    {
+    }
+
+    int x, y, id, dir;
 };
 
 class PieceRef
@@ -44,6 +53,8 @@ public:
     int GetDir() const;
 
     void SetDir(int dir);
+
+    int GetId() const;
 
 private:
     PieceDef def;

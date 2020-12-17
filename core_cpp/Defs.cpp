@@ -48,6 +48,11 @@ void PieceRef::SetDir(int dir)
     this->dir = dir;
 }
 
+int PieceRef::GetId() const
+{
+    return def.id;
+}
+
 void edge::ParseNumberLine(const std::string& line, std::vector<int>& vals)
 {
     std::string val_str;

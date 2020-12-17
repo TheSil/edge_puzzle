@@ -9,7 +9,7 @@ PuzzleDef::PuzzleDef(int height, int width, int edge_colors, int inner_colors)
 {
 }
 
-PuzzleDef PuzzleDef::Load(const std::string& filename)
+PuzzleDef PuzzleDef::Load(const std::string& filename, const std::string& hints)
 {
     std::ifstream file(filename);
     std::string line;
@@ -25,7 +25,7 @@ PuzzleDef PuzzleDef::Load(const std::string& filename)
         vals.resize(5, 0);
 
         PieceDef piece(vals[0], vals[1], vals[2], vals[3], vals[4]);
-        int zeroes = std::count(vals.begin(), vals.end(), 0);
+        auto zeroes = std::count(vals.begin(), vals.end(), 0);
         if (zeroes == 2) { // corner
             def.corners.push_back(piece);
         }
@@ -36,6 +36,15 @@ PuzzleDef PuzzleDef::Load(const std::string& filename)
             def.inner.push_back(piece);
         }
         def.all[vals[0]] = piece;
+    }
+
+    if (!hints.empty()) {
+        while (getline(file, line)) {
+            vals.clear();
+            ParseNumberLine(line, vals);
+            vals.resize(4, 0);
+            def.hints.push_back(HintDef(vals[0], vals[1], vals[2], vals[3]));
+        }
     }
 
     return def;
@@ -64,4 +73,9 @@ const std::vector<PieceDef>& PuzzleDef::GetEdges() const
 const std::vector<PieceDef>& PuzzleDef::GetInner() const
 {
     return inner;
+}
+
+const std::vector<HintDef>& PuzzleDef::GetHints() const
+{
+    return hints;
 }

@@ -40,7 +40,7 @@ private:
 
     void Shuffle();
 
-    void Shuffle(std::vector< Board::BoardLoc* >& locations, int count);
+    void Shuffle(std::vector< int >& ids, int count);
 
 private:
     enum class State {
@@ -48,6 +48,10 @@ private:
         RANDOM_SHUFFLING = 1,
         RANDOM_RECOVERING = 2
     };
+
+    std::vector< int > swappable_corners;
+    std::vector< int > swappable_edges;
+    std::vector< int > swappable_inners;
 
     std::unique_ptr<Board> board;
     std::unique_ptr<Board> board_backup;
