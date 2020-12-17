@@ -60,6 +60,11 @@ int PuzzleDef::GetWidth() const
     return width;
 }
 
+int PuzzleDef::GetPieceCount() const
+{
+    return static_cast<int>(all.size());
+}
+
 const std::vector<PieceDef>& PuzzleDef::GetCorners() const
 {
     return corners;

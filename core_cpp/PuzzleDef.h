@@ -18,6 +18,8 @@ public:
 
     int GetWidth() const;
 
+    int GetPieceCount() const;
+
     const std::vector<PieceDef>& GetCorners() const;
 
     const std::vector<PieceDef>& GetEdges() const;

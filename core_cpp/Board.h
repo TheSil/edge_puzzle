@@ -16,43 +16,9 @@ public:
         const HintDef* hint;
         int x, y;
 
-        BoardLoc() : hint(nullptr), x(0), y(0)
-        {
-            // need to be relinked
-            neighbours[0] = 0;
-            neighbours[1] = 0;
-            neighbours[2] = 0;
-            neighbours[3] = 0;
-        }
-
-        BoardLoc(const BoardLoc& other) : hint(other.hint), x(other.x), y(other.y)
-        {
-            // ref ignored, it is always empty during copy/assignment, must be relinked
-            // same for neighbours
-            neighbours[0] = 0;
-            neighbours[1] = 0;
-            neighbours[2] = 0;
-            neighbours[3] = 0;
-        }
-
-        BoardLoc& operator= (const BoardLoc& other)
-        {
-            // ref ignored, it is always empty during copy/assignment, must be relinked
-            // same for neighbours
-            if (this != &other)
-            {
-                hint = other.hint;
-                x = other.x;
-                y = other.y;
-
-                neighbours[0] = 0;
-                neighbours[1] = 0;
-                neighbours[2] = 0;
-                neighbours[3] = 0;
-            }
-
-            return *this;
-        }
+        BoardLoc();
+        BoardLoc(const BoardLoc& other);
+        BoardLoc& operator= (const BoardLoc& other);
     };
 
     struct State {

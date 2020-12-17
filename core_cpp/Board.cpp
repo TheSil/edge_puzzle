@@ -10,6 +10,44 @@ int ScoreBetween(const Board::BoardLoc* loc) {
     return (loc->ref->GetPattern(FIRST) == second->ref->GetPattern(SECOND)) ? 1 : 0;
 }
 
+Board::BoardLoc::BoardLoc() : hint(nullptr), x(0), y(0)
+{
+    // need to be relinked
+    neighbours[0] = 0;
+    neighbours[1] = 0;
+    neighbours[2] = 0;
+    neighbours[3] = 0;
+}
+
+Board::BoardLoc::BoardLoc(const BoardLoc& other) : hint(other.hint), x(other.x), y(other.y)
+{
+    // ref ignored, it is always empty during copy/assignment, must be relinked
+    // same for neighbours
+    neighbours[0] = 0;
+    neighbours[1] = 0;
+    neighbours[2] = 0;
+    neighbours[3] = 0;
+}
+
+Board::BoardLoc& Board::BoardLoc::operator= (const Board::BoardLoc& other)
+{
+    // ref ignored, it is always empty during copy/assignment, must be relinked
+    // same for neighbours
+    if (this != &other)
+    {
+        hint = other.hint;
+        x = other.x;
+        y = other.y;
+
+        neighbours[0] = 0;
+        neighbours[1] = 0;
+        neighbours[2] = 0;
+        neighbours[3] = 0;
+    }
+
+    return *this;
+}
+
 Board::Board(const PuzzleDef* def)
     : def(def)
 {
@@ -102,8 +140,7 @@ void Board::UpdateLinks()
 
 void Board::UpdateIds()
 {
-    // TODO: another access to number of pieces?
-    auto pieces_count = def->GetCorners().size() + def->GetEdges().size() + def->GetInner().size();
+    auto pieces_count = def->GetPieceCount();
     state.locations.resize(pieces_count + 1); // id's are one indexed
 
     for (int i = 0; i < def->GetHeight(); ++i) {
