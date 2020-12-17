@@ -29,6 +29,10 @@ public:
 
     Board(const PuzzleDef* def);
 
+    void Save(const std::string& filename);
+
+    void Load(const std::string& filename);
+
     State Backup();
 
     void Restore(State& state);

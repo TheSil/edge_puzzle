@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <fstream>
 #include "Board.h"
 
 using namespace edge;
@@ -114,6 +115,27 @@ Board::Board(const PuzzleDef* def)
     UpdateIds();
 }
 
+void Board::Save(const std::string& filename)
+{
+    std::ofstream file(filename);
+    for (int x = 0; x < def->GetHeight(); ++x) {
+        for (int y = 0; y < def->GetHeight(); ++y) {
+            if (state.board[x][y].ref) {
+                file << x << "," 
+                    << y << "," 
+                    << state.board[x][y].ref->GetId() << "," 
+                    << state.board[x][y].ref->GetDir()
+                    << std::endl;
+            }
+        }
+    }
+}
+
+void Board::Load(const std::string& filename)
+{
+
+}
+
 Board::State Board::Backup()
 {
     return State(this->state);
@@ -196,10 +218,14 @@ void Board::Randomize()
 
     for (int x = 0; x < def->GetHeight(); ++x) {
         for (int y = 0; y < def->GetWidth(); ++y) {
-            if (state.board[x][y].hint) {
-                int hint_id = state.board[x][y].hint->id;
+            auto& loc = state.board[x][y];
+            if (loc.hint) {
+                int hint_id = loc.hint->id;
                 auto& current_hint_loc = state.locations[hint_id];
-                SwapLocations(current_hint_loc, &state.board[x][y]);
+                SwapLocations(current_hint_loc, &loc);
+                if (loc.hint->dir != -1) {
+                    loc.ref->SetDir((loc.hint->dir));
+                }
             }
         }
     }

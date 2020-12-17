@@ -1,4 +1,5 @@
 #include <random>
+#include <sstream>
 #include "PuzzleDef.h"
 #include "Board.h"
 #include "Swapper.h"
@@ -18,11 +19,21 @@ int main()
     board.AdjustDirBorder();
     board.AdjustDirInner();
     int score = board.GetScore();
+    int max_score = score;
     printf("score: %i\n", score);
 
     edge::Swapper swapper(board);
     while (true) {
         swapper.DoSwap();
+        score = board.GetScore();
+        if (board.GetScore() > max_score) {
+            max_score = score;
+            if (score > 400) {
+                std::stringstream ss;
+                ss << "save_" << score << ".csv";
+                board.Save(ss.str());
+            }
+        }
     }
 
     return 0;

@@ -39,7 +39,8 @@ PuzzleDef PuzzleDef::Load(const std::string& filename, const std::string& hints)
     }
 
     if (!hints.empty()) {
-        while (getline(file, line)) {
+        std::ifstream hints_file(hints);
+        while (getline(hints_file, line)) {
             vals.clear();
             ParseNumberLine(line, vals);
             vals.resize(4, 0);
