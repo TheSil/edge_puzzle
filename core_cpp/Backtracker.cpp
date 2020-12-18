@@ -243,26 +243,24 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             }
         }
 
-        feasible_possibilities = *possible;
-        for (auto& item : forbidden[loc]) {
-            std::set< std::shared_ptr<PieceRef> > result;
-            std::set_difference(feasible_possibilities.begin(),
-                feasible_possibilities.end(),
-                item.second.begin(),
-                item.second.end(),
-                std::inserter(result, result.end()));
-            result.swap(feasible_possibilities);
-        }
-
-        for (auto& item : feasible_possibilities) {
-            if (!board.GetLocations()[item->GetId()]) {
-                if (CanBePlacedAt(loc, item)) {
-                    feasible_pieces[loc->x][loc->y]->push_back(item);
+        for (auto& piece : *possible) {
+            if (!board.GetLocations()[piece->GetId()]) {
+                bool allowed = true;
+                for (auto& item : forbidden[loc]) {
+                    auto & forbidden_pieces = item.second;
+                    if (forbidden_pieces.find(piece) != forbidden_pieces.end()) {
+                        allowed = false;
+                        break;
+                    }
+                }
+                if (allowed) {
+                    if (CanBePlacedAt(loc, piece)) {
+                        feasible_pieces[loc->x][loc->y]->push_back(piece);
+                    }
                 }
             }
         }
     }
-
 
     if (!ignore_impossible && constraint_reducing) {
         throw std::exception("NYI");
