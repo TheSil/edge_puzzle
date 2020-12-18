@@ -7,7 +7,7 @@ using namespace edge;
 template <int FIRST, int SECOND>
 int ScoreBetween(const Board::BoardLoc* loc) {
     auto second = loc->neighbours[FIRST];
-    if (!loc || !second) return 0;
+    if (!loc || !loc->ref || !second || !second->ref) return 0;
     return (loc->ref->GetPattern(FIRST) == second->ref->GetPattern(SECOND)) ? 1 : 0;
 }
 
@@ -240,24 +240,29 @@ void Board::Randomize()
     }
 }
 
+inline void AdjustDirBorderSafe(Board::BoardLoc* loc, int dir)
+{
+    if (loc->ref) loc->ref->SetDir(dir);
+}
+
 void Board::AdjustDirBorder()
 {
-    state.board[0][0].ref->SetDir(EAST);
-    state.board[0][def->GetWidth() - 1].ref->SetDir(SOUTH);
-    state.board[def->GetHeight() - 1][0].ref->SetDir(NORTH);
-    state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref->SetDir(WEST);
+    AdjustDirBorderSafe(&state.board[0][0], EAST);
+    AdjustDirBorderSafe(&state.board[0][def->GetWidth() - 1], SOUTH);
+    AdjustDirBorderSafe(&state.board[def->GetHeight() - 1][0], NORTH);
+    AdjustDirBorderSafe(&state.board[def->GetHeight() - 1][def->GetWidth() - 1], WEST);
 
     for (auto dest : top_edges) {
-        state.board[dest.first][dest.second].ref->SetDir(EAST);
+        AdjustDirBorderSafe(&state.board[dest.first][dest.second], EAST);
     }
     for (auto dest : bottom_edges) {
-        state.board[dest.first][dest.second].ref->SetDir(WEST);
+        AdjustDirBorderSafe(&state.board[dest.first][dest.second],WEST);
     }
     for (auto dest : left_edges) {
-        state.board[dest.first][dest.second].ref->SetDir(NORTH);
+        AdjustDirBorderSafe(&state.board[dest.first][dest.second],NORTH);
     }
     for (auto dest : right_edges) {
-        state.board[dest.first][dest.second].ref->SetDir(SOUTH);
+        AdjustDirBorderSafe(&state.board[dest.first][dest.second],SOUTH);
     }
 }
 
@@ -287,6 +292,25 @@ void Board::PutPiece(int id, int x, int y, int dir)
         state.board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(def->GetPieceDef(id), dir));
     }
     state.locations_per_id[id] = &state.board[x][y];
+}
+
+void Board::PutPiece(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
+{
+    if (state.locations_per_id[ref->GetId()]) {
+        // alrady placed, swap positions
+        SwapLocations(state.locations_per_id[ref->GetId()], loc);
+        loc->ref->SetDir(ref->GetDir());
+    }
+    else {
+        loc->ref = ref;
+    }
+    state.locations_per_id[ref->GetId()] = loc;
+}
+
+void Board::RemovePiece(Board::BoardLoc* loc)
+{
+    state.locations_per_id[loc->ref->GetId()] = nullptr;
+    loc->ref = nullptr;
 }
 
 const PuzzleDef* Board::GetPuzzleDef() const
@@ -354,6 +378,25 @@ void Board::SwapLocations(Board::BoardLoc* loc1,
 Board::BoardLoc* Board::GetLocation(int x, int y)
 {
     return &state.board[x][y];
+}
+
+bool Board::IsCorner(int x, int y)
+{
+    return (x == 0 && y == 0) ||
+           (x == 0 && (y == def->GetWidth() - 1)) ||
+          ((x == def->GetHeight() - 1) && y == 0) ||
+          ((x == def->GetHeight() - 1) && (y == def->GetWidth() - 1));
+}
+
+bool Board::IsInner(int x, int y)
+{
+    return (0 < x) && (x < (def->GetHeight() - 1)) &&
+           (0 < y) && (y < (def->GetWidth() - 1));
+}
+
+bool Board::IsEdge(int x, int y)
+{
+    return !IsInner(x, y) && !IsCorner(x, y);
 }
 
 bool Board::AdjustDirInner(BoardLoc* loc)

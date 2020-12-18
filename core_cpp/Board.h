@@ -11,7 +11,7 @@ class Board
 public:
     struct BoardLoc
     {
-        std::unique_ptr<PieceRef> ref;
+        std::shared_ptr<PieceRef> ref;
         BoardLoc* neighbours[4];
         const HintDef* hint;
         int x, y;
@@ -45,6 +45,10 @@ public:
 
     void PutPiece(int id, int x, int y, int dir);
 
+    void PutPiece(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref);
+
+    void RemovePiece(Board::BoardLoc* loc);
+
     const PuzzleDef* GetPuzzleDef() const;
 
     int GetScore() const;
@@ -63,6 +67,13 @@ public:
         Board::BoardLoc* loc2);
 
     BoardLoc* GetLocation(int x, int y);
+
+    bool IsCorner(int x, int y);
+
+    bool IsInner(int x, int y);
+
+    bool IsEdge(int x, int y);
+
 
 private:
 
