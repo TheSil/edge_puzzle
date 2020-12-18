@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
         i += 1;
         int now = (int)time(0);
         if (now - start >= 1) {
-            printf("%i iterations\n", i);
+            printf("%i iterations/s\n", i);
             i = 0;
             start = now;
         }

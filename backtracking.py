@@ -58,8 +58,12 @@ if __name__ == '__main__':
             it = 0
             steps_report = time.time() + 1
 
+
         backtracker.step()
         val = board.evaluate()
+        if backtracker.state == backtracker.SOLVED:
+            print(f"Solved in {it} iterations")
+
         if best < val:
             best_board = copy.deepcopy(board)
             ui.board = best_board

@@ -150,6 +150,7 @@ bool Swapper::DoQuickSwaps()
 
         const int max_pairs_swapped = 10;
         for (size_t k = 0; k < same_score_pieces_pairs.size() && k < max_pairs_swapped; ++k) {
+            auto& pair = same_score_pieces_pairs[k];
             LDEBUG("... exchanging pieces (%i, %i) with (%i, %i) with same result "
                 "to give chance of swing into another possibilities\n",
                 pair.first->x, pair.first->y, pair.second->x, pair.second->y);
@@ -293,7 +294,7 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
 
                     if (piece_score_after > piece_score_best_after) {
                         LDEBUG("Switching (%i, %i) <-> (%i, %i), score %i to %i\n",
-                            cont[idx[idx1]]->x, cont[idx[idx1]]->y, cont[idx[idx2]]->x, cont[idx[idx2]]->y,
+                            loc1->x, loc1->y, loc2->x, loc2->y,
                             piece_score_before, piece_score_after);
                         piece_score_best_after = piece_score_after;
                         board.AdjustDirInner();

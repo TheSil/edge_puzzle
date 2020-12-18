@@ -12,7 +12,7 @@ Backtracker::Backtracker(Board& board)
     best_unplaced_container(nullptr), best_unplaced_container_ids(nullptr),
     explored_max(0)
 {
-    fact.resize(4 * 256 + 1);
+    fact.resize(4 * board.GetPuzzleDef()->GetPieceCount() + 1);
     for (int i = 0; i < fact.size(); ++i) {
         fact[i] = 0; // TBD actual factorial values
     }
@@ -400,8 +400,8 @@ bool Backtracker::CanBePlacedAt(Board::BoardLoc* loc, std::shared_ptr<PieceRef> 
 
 void Backtracker::Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
 {
-    //printf("Placing %i at (%i, %i) dir=%i stack_size=%i\n",
-    //    ref->GetId(), loc->x, loc->y, ref->GetDir(), visited.size() + 1);
+    LDEBUG("Placing %i at (%i, %i) dir=%i stack_size=%i\n",
+        ref->GetId(), loc->x, loc->y, ref->GetDir(), static_cast<int>(visited.size()) + 1);
     board.PutPiece(loc, ref);
     best_unplaced_container->erase(ref);
     best_unplaced_container_ids->erase(ref->GetId());
@@ -420,8 +420,8 @@ void Backtracker::Backtrack()
     visited.pop();
     unvisited.insert(removing);
     int stack_pos = static_cast<int>(visited.size());
-    //printf("Removing %i from (%i, %i) stack_size=%i\n", 
-    //    removing->ref->GetId(), removing->x, removing->y, visited.size());
+    LDEBUG("Removing %i from (%i, %i) stack_size=%i\n",
+        removing->ref->GetId(), removing->x, removing->y, static_cast<int>(visited.size()));
 
     // updated explored statistics
     explored[stack_pos] += fact[unplaced_corners_ids.size()] *
