@@ -22,6 +22,9 @@
     <ClCompile Include="Swapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Backtracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h">
@@ -34,6 +37,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Swapper.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backtracker.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

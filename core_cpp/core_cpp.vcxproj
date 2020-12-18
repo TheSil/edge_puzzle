@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Backtracker.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="Defs.cpp" />
     <ClCompile Include="main.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="Swapper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Backtracker.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="Defs.h" />
     <ClInclude Include="PuzzleDef.h" />
