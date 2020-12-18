@@ -215,8 +215,8 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
     std::set< std::shared_ptr<PieceRef> >* possible = nullptr;
     for (auto loc : unvisited) {
-        feasible_pieces[loc->x][loc->y] = std::unique_ptr< std::set<
-            std::shared_ptr<PieceRef> > >(new std::set<
+        feasible_pieces[loc->x][loc->y] = std::unique_ptr< std::vector<
+            std::shared_ptr<PieceRef> > >(new std::vector<
                 std::shared_ptr<PieceRef> >);
 
         if (board.IsCorner(loc->x, loc->y)) {
@@ -255,61 +255,62 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
         }
 
         for (auto& item : feasible_possibilities) {
-            if (placed_ids.find(item->GetId()) == placed_ids.end()) {
+            if (!board.GetLocations()[item->GetId()]) {
                 if (CanBePlacedAt(loc, item)) {
-                    feasible_pieces[loc->x][loc->y]->insert(item);
+                    feasible_pieces[loc->x][loc->y]->push_back(item);
                 }
             }
         }
+    }
 
-        if (!ignore_impossible && constraint_reducing) {
-            throw std::exception("NYI");
-            // graph matching algoritmh should go here
 
+    if (!ignore_impossible && constraint_reducing) {
+        throw std::exception("NYI");
+        // graph matching algoritmh should go here
+
+    }
+
+    // some commented slow constraint checking here in 
+    // original python code
+
+    best_feasible_locations.clear();
+
+    std::set<int>* possible_ids = nullptr;
+    for (auto loc : unvisited) {
+        if (!feasible_pieces[loc->x][loc->y]) {
+            continue;
         }
 
-        // some commented slow constraint checking here in 
-        // original python code
+        if (board.IsCorner(loc->x, loc->y)) {
+            possible = &unplaced_corners;
+            possible_ids = &unplaced_corners_ids;
+        }
+        else if (board.IsEdge(loc->x, loc->y)) {
+            possible = &unplaced_edges;
+            possible_ids = &unplaced_edges_ids;
+        }
+        else {
+            possible = &unplaced_inner;
+            possible_ids = &unplaced_inner_ids;
+        }
 
-        best_feasible_locations.clear();
+        int score = static_cast<int>(feasible_pieces[loc->x][loc->y]->size());
+        if (score == best_score && best_unplaced_container == possible) {
+            best_feasible_locations.push_back(loc);
+        }
+        else if ((best_score == -1 || score < best_score) &&
+            (!ignore_impossible || score > 0)) {
+            best_score = score;
+            //auto p = *feasible_pieces[loc->x][loc->y]->begin();
+            best_feasible_locations.clear();
+            best_feasible_locations.push_back(loc);
+            best_unplaced_container = possible;
+            best_unplaced_container_ids = possible_ids;
+        }
 
-        std::set<int>* possible_ids = nullptr;
-        for (auto loc : unvisited) {
-            if (board.IsCorner(loc->x, loc->y)) {
-                possible = &unplaced_corners;
-                possible_ids = &unplaced_corners_ids;
-            }
-            else if (board.IsEdge(loc->x, loc->y)) {
-                possible = &unplaced_edges;
-                possible_ids = &unplaced_edges_ids;
-            }
-            else {
-                possible = &unplaced_inner;
-                possible_ids = &unplaced_inner_ids;
-            }
-
-            if (!feasible_pieces[loc->x][loc->y]) {
-                continue;
-            }
-
-            int score = static_cast<int>(feasible_pieces[loc->x][loc->y]->size());
-            if (score == best_score && best_unplaced_container == possible) {
-                best_feasible_locations.push_back(loc);
-            }
-            else if ((best_score == -1 || score < best_score) &&
-                (!ignore_impossible || score > 0)) {
-                best_score = score;
-                //auto p = *feasible_pieces[loc->x][loc->y]->begin();
-                best_feasible_locations.clear();
-                best_feasible_locations.push_back(loc);
-                best_unplaced_container = possible;
-                best_unplaced_container_ids = possible_ids;
-            }
-
-            if (best_score == 0) {
-                // impossible to place anything here...
-                break;
-            }
+        if (best_score == 0) {
+            // impossible to place anything here...
+            break;
         }
     }
 
@@ -411,7 +412,6 @@ void Backtracker::Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
         throw std::exception("Removing backtracking position when placing piece?!?");
     }
     backtracked_position = nullptr;
-    placed_ids.insert(ref->GetId());
 }
 
 void Backtracker::Backtrack()
@@ -444,7 +444,6 @@ void Backtracker::Backtrack()
         unplaced_inner.insert(removing->ref);
         unplaced_inner_ids.insert(removing->ref->GetId());
     }
-    placed_ids.erase(removing->ref->GetId());
     board.RemovePiece(removing);
 
     // remove all forbidden due to later position

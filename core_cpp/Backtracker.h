@@ -41,7 +41,6 @@ private:
     int finalizing_threshold;
     std::stack<Board::BoardLoc*> visited;
     std::set<Board::BoardLoc*> unvisited;
-    std::set<int> placed_ids;
     Board::BoardLoc* backtracked_position;
     bool find_all;
     bool enable_finalizing;
@@ -51,7 +50,7 @@ private:
     std::set < std::shared_ptr<PieceRef> > feasible_possibilities;
     std::vector<Board::BoardLoc*> best_feasible_locations;
     std::vector<std::vector<
-        std::unique_ptr< std::set<
+        std::unique_ptr< std::vector<
         std::shared_ptr<PieceRef> > > > > feasible_pieces;
 
     std::vector<int> grid_scores;
