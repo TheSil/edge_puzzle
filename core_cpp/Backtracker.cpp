@@ -46,7 +46,45 @@ Backtracker::Backtracker(Board& board)
     }
 
     // hints
-    if (0) {
+    for (auto& hint : board.GetPuzzleDef()->GetHints()) {
+        int dir = (hint.dir != -1) ? hint.dir : 0;
+        board.PutPiece(hint.id, hint.x, hint.y, dir);
+
+        std::vector< std::shared_ptr<PieceRef> > to_erase;
+
+        to_erase.clear();
+        for (auto& ref : unplaced_corners) {
+            if (ref->GetId() == hint.id) {
+                to_erase.push_back(ref);
+            }
+        }
+        for (auto& ref : to_erase) {
+            unplaced_corners.erase(ref);
+        }
+
+        to_erase.clear();
+        for (auto& ref : unplaced_edges) {
+            if (ref->GetId() == hint.id) {
+                to_erase.push_back(ref);
+            }
+        }
+        for (auto& ref : to_erase) {
+            unplaced_edges.erase(ref);
+        }
+
+        to_erase.clear();
+        for (auto& ref : unplaced_inner) {
+            if (ref->GetId() == hint.id) {
+                to_erase.push_back(ref);
+            }
+        }
+        for (auto& ref : to_erase) {
+            unplaced_inner.erase(ref);
+        }
+
+        auto loc = board.GetLocation(hint.x, hint.y);
+        unvisited.erase(loc);
+        visited.push(loc);
     }
 
     // grid file
@@ -219,7 +257,7 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             // are wasting time computing those
             int neighbours = 0;
             for (int i = 0; i < 4; ++i) {
-                neighbours += (loc->neighbours[i]) ? 1 : 0;
+                neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
             }
             if (neighbours == 0) {
                 feasible_pieces[loc->x][loc->y] = nullptr;
