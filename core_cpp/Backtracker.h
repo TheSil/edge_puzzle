@@ -56,23 +56,13 @@ private:
     std::vector<int> grid_scores;
 
     std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
-    std::set<int>* best_unplaced_container_ids;
 
-    std::set<int> unplaced_corners_ids;
-    std::set<int> unplaced_edges_ids;
-    std::set<int> unplaced_inner_ids;
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
 
     std::map<Board::BoardLoc*,
         std::map<int, std::set< std::shared_ptr<PieceRef> > > > forbidden;
-
-    // stats - TBD needs some more work, what data types?
-    std::vector<int> explored;
-    std::vector<int> fact;
-    int explored_max;
-
 };
 
 }

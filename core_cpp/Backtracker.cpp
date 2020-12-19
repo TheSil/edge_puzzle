@@ -9,14 +9,8 @@ Backtracker::Backtracker(Board& board)
     backtracked_position(nullptr), find_all(false), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(true),
     constraint_reducing(false),
-    best_unplaced_container(nullptr), best_unplaced_container_ids(nullptr),
-    explored_max(0)
+    best_unplaced_container(nullptr)
 {
-    fact.resize(4 * board.GetPuzzleDef()->GetPieceCount() + 1);
-    for (int i = 0; i < fact.size(); ++i) {
-        fact[i] = 0; // TBD actual factorial values
-    }
-
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             // TBD some logic with pieces_map here in python code
@@ -29,7 +23,6 @@ Backtracker::Backtracker(Board& board)
             unplaced_corners.insert(
                 std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
         }
-        unplaced_corners_ids.insert(piece.id);
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetEdges()) {
@@ -37,7 +30,6 @@ Backtracker::Backtracker(Board& board)
             unplaced_edges.insert(
                 std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
         }
-        unplaced_edges_ids.insert(piece.id);
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetInner()) {
@@ -45,7 +37,6 @@ Backtracker::Backtracker(Board& board)
             unplaced_inner.insert(
                 std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
         }
-        unplaced_inner_ids.insert(piece.id);
     }
 
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
@@ -53,12 +44,6 @@ Backtracker::Backtracker(Board& board)
             forbidden[board.GetLocation(x, y)].clear();
         }
     }
-
-    explored.resize(board.GetPuzzleDef()->GetPieceCount(), 0);
-    explored_max = fact[4] *
-        fact[board.GetPuzzleDef()->GetEdges().size()] *
-        fact[board.GetPuzzleDef()->GetInner().size()] *
-        (Power(4, (int)board.GetPuzzleDef()->GetInner().size()));
 
     // hints
     if (0) {
@@ -69,7 +54,6 @@ Backtracker::Backtracker(Board& board)
     }
 
     board.AdjustDirBorder();
-
 }
 
 bool Backtracker::Step()
@@ -273,7 +257,6 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
     best_feasible_locations.clear();
 
-    std::set<int>* possible_ids = nullptr;
     for (auto loc : unvisited) {
         if (!feasible_pieces[loc->x][loc->y]) {
             continue;
@@ -281,15 +264,12 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
         if (board.IsCorner(loc->x, loc->y)) {
             possible = &unplaced_corners;
-            possible_ids = &unplaced_corners_ids;
         }
         else if (board.IsEdge(loc->x, loc->y)) {
             possible = &unplaced_edges;
-            possible_ids = &unplaced_edges_ids;
         }
         else {
             possible = &unplaced_inner;
-            possible_ids = &unplaced_inner_ids;
         }
 
         int score = static_cast<int>(feasible_pieces[loc->x][loc->y]->size());
@@ -299,11 +279,9 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
         else if ((best_score == -1 || score < best_score) &&
             (!ignore_impossible || score > 0)) {
             best_score = score;
-            //auto p = *feasible_pieces[loc->x][loc->y]->begin();
             best_feasible_locations.clear();
             best_feasible_locations.push_back(loc);
             best_unplaced_container = possible;
-            best_unplaced_container_ids = possible_ids;
         }
 
         if (best_score == 0) {
@@ -403,7 +381,6 @@ void Backtracker::Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
         ref->GetId(), loc->x, loc->y, ref->GetDir(), static_cast<int>(visited.size()) + 1);
     board.PutPiece(loc, ref);
     best_unplaced_container->erase(ref);
-    best_unplaced_container_ids->erase(ref->GetId());
     unvisited.erase(loc);
     visited.push(loc);
     if (backtracked_position && backtracked_position != loc) {
@@ -421,26 +398,16 @@ void Backtracker::Backtrack()
     LDEBUG("Removing %i from (%i, %i) stack_size=%i\n",
         removing->ref->GetId(), removing->x, removing->y, static_cast<int>(visited.size()));
 
-    // updated explored statistics
-    explored[stack_pos] += fact[unplaced_corners_ids.size()] *
-        fact[unplaced_edges_ids.size()] *
-        fact[unplaced_inner_ids.size()] *
-        Power(4, (int)unplaced_inner_ids.size());
-    explored[stack_pos + 1] = 0;
-
     forbidden[removing][stack_pos].insert(removing->ref);
 
     if (board.IsCorner(removing->x, removing->y)) {
         unplaced_corners.insert(removing->ref);
-        unplaced_corners_ids.insert(removing->ref->GetId());
     }
     else if (board.IsEdge(removing->x, removing->y)) {
         unplaced_edges.insert(removing->ref);
-        unplaced_edges_ids.insert(removing->ref->GetId());
     }
     else {
         unplaced_inner.insert(removing->ref);
-        unplaced_inner_ids.insert(removing->ref->GetId());
     }
     board.RemovePiece(removing);
 
