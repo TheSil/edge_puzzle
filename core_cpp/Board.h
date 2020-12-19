@@ -41,6 +41,8 @@ public:
 
     void AdjustDirBorder();
 
+    void AdjustDirBorderSingle(Board::BoardLoc* loc);
+
     void AdjustDirInner();
 
     void PutPiece(int id, int x, int y, int dir);

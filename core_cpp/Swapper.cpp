@@ -223,21 +223,41 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
     }
     std::stable_sort(idx.begin(), idx.end(),
         [&vals](size_t i1, size_t i2) {return vals[i1] < vals[i2]; });
+    board.AdjustDirBorder();
+    auto score_before = board.GetScore();
     for (size_t idx1 = 1; idx1 < idx.size(); ++idx1)
     {
         auto& loc1 = locs[cont[idx[idx1]]];
         for (size_t idx2 = 0; idx2 < idx1; ++idx2)
         {
             auto& loc2 = locs[cont[idx[idx2]]];
+
+            int piece_score_before = board.GetScore(loc1);
+            piece_score_before += board.GetScore(loc2);
+            if (HaveCommonEdge(loc1, loc2)) {
+                piece_score_before -= 1;
+            }
+
+            int orig_dir1 = loc1->ref->GetDir();
+            int orig_dir2 = loc2->ref->GetDir();
             board.SwapLocations(loc1, loc2);
-            board.AdjustDirBorder();
-            int after = board.GetScore();
-            if (after > score_to_beat)
+            board.AdjustDirBorderSingle(loc1);
+            board.AdjustDirBorderSingle(loc2);
+
+            int piece_score_after = board.GetScore(loc1);
+            piece_score_after += board.GetScore(loc2);
+            if (HaveCommonEdge(loc1, loc2)) {
+                piece_score_after -= 1;
+            }
+
+            if (piece_score_after > piece_score_before)
             {
                 return true;
             }
 
-            if (after == score_to_beat)
+            // convert local score to global
+            auto diff = piece_score_after - piece_score_before;
+            if (score_before + diff == score_to_beat)
             {
                 same_score_pieces_pairs.push_back(
                     std::pair<Board::BoardLoc*,
@@ -245,6 +265,8 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
             }
 
             board.SwapLocations(loc1, loc2);
+            loc1->ref->SetDir(orig_dir1);
+            loc2->ref->SetDir(orig_dir2);
         }
     }
 

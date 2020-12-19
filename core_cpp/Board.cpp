@@ -253,7 +253,7 @@ void Board::AdjustDirBorder()
     AdjustDirBorderSafe(&state.board[def->GetHeight() - 1][def->GetWidth() - 1], WEST);
 
     for (auto dest : top_edges) {
-        AdjustDirBorderSafe(&state.board[dest.first][dest.second], EAST);
+        AdjustDirBorderSafe(&state.board[dest.first][dest.second],EAST);
     }
     for (auto dest : bottom_edges) {
         AdjustDirBorderSafe(&state.board[dest.first][dest.second],WEST);
@@ -264,6 +264,18 @@ void Board::AdjustDirBorder()
     for (auto dest : right_edges) {
         AdjustDirBorderSafe(&state.board[dest.first][dest.second],SOUTH);
     }
+}
+
+void Board::AdjustDirBorderSingle(Board::BoardLoc* loc)
+{
+    if ((loc->x == 0) && (loc->y == 0))  AdjustDirBorderSafe(loc, EAST);
+    if ((loc->x == 0) && (loc->y == def->GetWidth() - 1))  AdjustDirBorderSafe(loc, SOUTH);
+    if ((loc->x == def->GetHeight() - 1) && (loc->y == 0))  AdjustDirBorderSafe(loc, NORTH);
+    if ((loc->x == def->GetHeight() - 1) && (loc->y == def->GetWidth() - 1))  AdjustDirBorderSafe(loc, WEST);
+    if (loc->x == 0 && (0 != loc->y) && (loc->y != def->GetWidth() - 1)) AdjustDirBorderSafe(loc, EAST);
+    if (loc->x == def->GetHeight() - 1 && (0 != loc->y) && (loc->y != def->GetWidth() - 1)) AdjustDirBorderSafe(loc, WEST);
+    if (loc->y == 0 && (0 != loc->x) && (loc->x != def->GetHeight() - 1)) AdjustDirBorderSafe(loc, NORTH);
+    if (loc->y == def->GetWidth() - 1 && (0 != loc->x) && (loc->x != def->GetHeight() - 1)) AdjustDirBorderSafe(loc, SOUTH);
 }
 
 void Board::AdjustDirInner()

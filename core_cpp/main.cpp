@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
-#if 1 // BACKTRACKER
+#if 0 // BACKTRACKER
 
     edge::Backtracker backtracker(board);
     int i = 0;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
     board.Save(ss.str());
 #endif
 
-#if 0 // swapper
+#if 1 // swapper
 
     std::string load_file = "";
     if (argc > 3) {
