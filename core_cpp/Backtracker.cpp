@@ -87,10 +87,6 @@ Backtracker::Backtracker(Board& board)
         visited.push(loc);
     }
 
-    // grid file
-    if (0) {
-    }
-
     board.AdjustDirBorder();
 }
 
@@ -135,38 +131,33 @@ bool Backtracker::Step()
 
         Board::BoardLoc* selected_loc = nullptr;
         std::shared_ptr <PieceRef> selected_piece_ref = nullptr;
-        if (!grid_scores.empty())
-        {
-            throw std::exception("NYI");
-        }
-        else {
-            // from the set of selected pieces, select one with least number
-            // of possibilities(most constrained)
-            std::map<int, std::tuple<int, Board::BoardLoc*, std::shared_ptr<PieceRef> > > counts;
-            for (auto& loc : best_feasible_locations) {
-                for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
-                    std::get<0>(counts[piece_ref->GetId()]) += 1;
-                    std::get<1>(counts[piece_ref->GetId()]) = loc;
-                    std::get<2>(counts[piece_ref->GetId()]) = piece_ref;;
-                }
-            }
 
-            // TBD: this whole selecting of maximum seems obfuscate, simplify...
-            int max_count = -1;
-            std::shared_ptr<PieceRef> max_ref = nullptr;
-            Board::BoardLoc* max_loc = nullptr;
-            for (auto& item : counts) {
-                int count = std::get<0>(item.second);
-                if (max_count == -1 || count > max_count) {
-                    max_count = count;
-                    max_loc = std::get<1>(item.second);
-                    max_ref = std::get<2>(item.second);
-                }
+        // from the set of selected pieces, select one with least number
+        // of possibilities(most constrained)
+        std::map<int, std::tuple<int, Board::BoardLoc*, std::shared_ptr<PieceRef> > > counts;
+        for (auto& loc : best_feasible_locations) {
+            for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
+                std::get<0>(counts[piece_ref->GetId()]) += 1;
+                std::get<1>(counts[piece_ref->GetId()]) = loc;
+                std::get<2>(counts[piece_ref->GetId()]) = piece_ref;;
             }
-
-            selected_loc = max_loc;
-            selected_piece_ref = max_ref;
         }
+
+        // TBD: this whole selecting of maximum seems obfuscate, simplify...
+        int max_count = -1;
+        std::shared_ptr<PieceRef> max_ref = nullptr;
+        Board::BoardLoc* max_loc = nullptr;
+        for (auto& item : counts) {
+            int count = std::get<0>(item.second);
+            if (max_count == -1 || count > max_count) {
+                max_count = count;
+                max_loc = std::get<1>(item.second);
+                max_ref = std::get<2>(item.second);
+            }
+        }
+
+        selected_loc = max_loc;
+        selected_piece_ref = max_ref;
 
         Place(selected_loc, selected_piece_ref);
         return true;

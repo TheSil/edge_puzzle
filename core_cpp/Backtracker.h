@@ -53,8 +53,6 @@ private:
         std::unique_ptr< std::vector<
         std::shared_ptr<PieceRef> > > > > feasible_pieces;
 
-    std::vector<int> grid_scores;
-
     std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
 
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
