@@ -42,6 +42,8 @@ Swapper::Swapper(Board& board)
                 hintDef.id),
             swappable_inners.end());
     }
+
+    max_score = board.GetScore();
 }
 
 void Swapper::DoSwap()
@@ -96,7 +98,7 @@ void Swapper::DoSwap()
             recovering_counter -= 1;
             if (recovering_counter >= 0) {
                 LDEBUG("RANDOM_RECOVERING not successful, going back to RANDOM_SHUFFLING\n");
-                if (score < max_score) {
+                if (score < max_score && !board_backup.board.empty()) {
                     board.Restore(board_backup);
                 }
                 state = State::RANDOM_SHUFFLING;
@@ -378,7 +380,7 @@ bool Swapper::HaveCommonEdge(Board::BoardLoc* loc1,
 void Swapper::Shuffle()
 {
     // shuffle random pieces
-    if (rand() % 2 == 1) {
+    if (rand() % board.GetPuzzleDef()->GetPieceCount() < board.GetInnersCoords().size()) {
         LDEBUG("shuffling random inner pieces...\n");
         auto& ids = swappable_inners;
         Shuffle(ids, 5);

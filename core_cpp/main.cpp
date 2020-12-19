@@ -54,9 +54,9 @@ int main(int argc, char* argv[])
         if (score > max_score) {
             max_score = score;
             printf("Reached score: %i\n", max_score);
-            if (score > 390) {
+            if (score > 410) {
                 std::stringstream ss;
-                ss << prefix << "_save_" << score << ".csv";
+                ss << prefix << "_backtracker_save_" << score << ".csv";
                 board.Save(ss.str());
             }
         }
@@ -125,6 +125,8 @@ int main(int argc, char* argv[])
         board.AdjustDirInner();
     }
 
+    int i = 0;
+    int start = (int)time(0);
     int score = board.GetScore();
     int max_score = score;
     printf("score: %i\n", score);
@@ -135,12 +137,20 @@ int main(int argc, char* argv[])
         score = board.GetScore();
         if (board.GetScore() > max_score) {
             max_score = score;
-            if (score > 400) {
+            if (score > 445) {
                 std::stringstream ss;
-                ss << prefix << "_save_" << score << ".csv";
+                ss << prefix << "_swapper_save_" << score << ".csv";
                 board.Save(ss.str());
             }
         }
+
+        i += 1;
+        //int now = (int)time(0);
+        //if (now - start >= 1) {
+        //    printf("%i iterations/s\n", i);
+        //    i = 0;
+        //    start = now;
+        //}
     }
 
 #endif
