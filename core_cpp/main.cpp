@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
         if (score > max_score) {
             max_score = score;
             printf("Reached score: %i\n", max_score);
-            if (score > 300) {
+            if (score > 390) {
                 std::stringstream ss;
                 ss << prefix << "_save_" << score << ".csv";
                 board.Save(ss.str());
@@ -62,12 +62,12 @@ int main(int argc, char* argv[])
         }
 
         i += 1;
-        int now = (int)time(0);
-        if (now - start >= 1) {
-            printf("%i iterations/s\n", i);
-            i = 0;
-            start = now;
-        }
+        //int now = (int)time(0);
+        //if (now - start >= 1) {
+        //    printf("%i iterations/s\n", i);
+        //    i = 0;
+        //    start = now;
+        //}
     }
 
     printf("SOLVED!\n");
