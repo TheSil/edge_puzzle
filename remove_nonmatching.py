@@ -4,9 +4,9 @@ import time
 import random
 import uuid
 import pygame.locals
-from core.defs import PuzzleDefinition, N, E, S, W, TYPE_CORNER, TYPE_EDGE
-import ui
+from ui import ui
 from core import board
+from core.defs import PuzzleDefinition, TYPE_CORNER, TYPE_EDGE, E, W, N, S
 
 if __name__ == '__main__':
 

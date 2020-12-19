@@ -5,6 +5,7 @@
 #include "Swapper.h"
 #include "Backtracker.h"
 #include <time.h>
+#include <Windows.h>
 
 int main(int argc, char* argv[])
 {
@@ -48,20 +49,32 @@ int main(int argc, char* argv[])
     int score = 0;
     int max_score = 0;
     printf("score: %i\n", score);
+    std::string last_save = "";
     while (backtracker.Step()) {
 
         score = board.GetScore();
         if (score > max_score) {
             max_score = score;
             printf("Reached score: %i\n", max_score);
-            if (score > 410) {
+            if (score > 330/*420*/) {
                 std::stringstream ss;
+                try {
+                    remove(last_save.c_str());
+                }
+                catch (...) {
+
+                }
                 ss << prefix << "_backtracker_save_" << score << ".csv";
-                board.Save(ss.str());
+                last_save = ss.str();
+                board.Save(last_save);
             }
         }
 
         i += 1;
+        if (i % 5 == 0) {
+            Sleep(1);
+        }
+        
         //int now = (int)time(0);
         //if (now - start >= 1) {
         //    printf("%i iterations/s\n", i);
@@ -130,6 +143,7 @@ int main(int argc, char* argv[])
     int score = board.GetScore();
     int max_score = score;
     printf("score: %i\n", score);
+    std::string last_save = "";
 
     edge::Swapper swapper(board);
     while (true) {
@@ -137,14 +151,24 @@ int main(int argc, char* argv[])
         score = board.GetScore();
         if (board.GetScore() > max_score) {
             max_score = score;
-            if (score > 445) {
+            if (score > 454) {
+                try {
+                    remove(last_save.c_str());
+                }
+                catch (...) {
+
+                }
                 std::stringstream ss;
                 ss << prefix << "_swapper_save_" << score << ".csv";
-                board.Save(ss.str());
+                last_save = ss.str();
+                board.Save(last_save);
             }
         }
 
         i += 1;
+        //if (i % 5 == 0) {
+            Sleep(1);
+        //}
         //int now = (int)time(0);
         //if (now - start >= 1) {
         //    printf("%i iterations/s\n", i);

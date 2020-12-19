@@ -7,7 +7,7 @@ using namespace edge;
 Backtracker::Backtracker(Board& board)
     : board(board), best_score(-1), backtrack_to(0),
     backtracked_position(nullptr), find_all(false), connecting(true),
-    counter(0), finalizing_threshold(90), enable_finalizing(true),
+    counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false),
     best_unplaced_container(nullptr)
 {
