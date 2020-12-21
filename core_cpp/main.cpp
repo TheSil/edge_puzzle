@@ -84,9 +84,9 @@ int main(int argc, char* argv[])
         }
 
         i += 1;
-        if (i % 5 == 0) {
-            Sleep(1);
-        }
+        //if (i % 5 == 0) {
+        //    Sleep(1);
+        //}
         if (backtracker.GetCounter() != prev_counter) {
             prev_counter = backtracker.GetCounter();
             printf("counter: %i \n", prev_counter);
@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
         int now = (int)time(0);
         if (now - start >= 1) {
             printf("max_score:%i, iters: %i\n", max_score, i);
+            Sleep(10);
             i = 0;
             start = now;
         }
