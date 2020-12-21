@@ -199,28 +199,28 @@ void Board::Randomize()
     auto inner_it = inner_copy.begin();
 
     state.board[0][0].ref =
-        std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, EAST));
+        std::make_unique<PieceRef>(*corners_it++, EAST);
     state.board[0][def->GetWidth() - 1].ref =
-        std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, SOUTH));
+        std::make_unique<PieceRef>(*corners_it++, SOUTH);
     state.board[def->GetHeight() - 1][0].ref =
-        std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, NORTH));
+        std::make_unique<PieceRef>(*corners_it++, NORTH);
     state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref =
-        std::unique_ptr<PieceRef>(new PieceRef(*corners_it++, WEST));
+        std::make_unique<PieceRef>(*corners_it++, WEST);
 
     for (auto dest : top_edges) {
-        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, EAST));
+        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, EAST);
     }
     for (auto dest : bottom_edges) {
-        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, WEST));
+        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, WEST);
     }
     for (auto dest : left_edges) {
-        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, NORTH));
+        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, NORTH);
     }
     for (auto dest : right_edges) {
-        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*edges_it++, SOUTH));
+        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, SOUTH);
     }
     for (auto dest : inner) {
-        state.board[dest.first][dest.second].ref = std::unique_ptr<PieceRef>(new PieceRef(*inner_it++, rand() % 4));
+        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*inner_it++, rand() % 4);
     }
 
     UpdateIds();
@@ -301,7 +301,7 @@ void Board::PutPiece(int id, int x, int y, int dir)
         SwapLocations(state.locations_per_id[id], &state.board[x][y]);
         state.board[x][y].ref->SetDir(dir);
     } else {
-        state.board[x][y].ref = std::unique_ptr<PieceRef>(new PieceRef(def->GetPieceDef(id), dir));
+        state.board[x][y].ref = std::make_unique<PieceRef>(def->GetPieceDef(id), dir);
     }
     state.locations_per_id[id] = &state.board[x][y];
 }

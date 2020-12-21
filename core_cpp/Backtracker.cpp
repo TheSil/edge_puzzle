@@ -26,21 +26,21 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     for (auto& piece : board.GetPuzzleDef()->GetCorners()) {
         for (int dir = 0; dir < 4; ++dir) {
             unplaced_corners.insert(
-                std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
+                std::make_shared<PieceRef>(piece, dir));
         }
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetEdges()) {
         for (int dir = 0; dir < 4; ++dir) {
             unplaced_edges.insert(
-                std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
+                std::make_shared<PieceRef>(piece, dir));
         }
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetInner()) {
         for (int dir = 0; dir < 4; ++dir) {
             unplaced_inner.insert(
-                std::shared_ptr<PieceRef>(new PieceRef(piece, dir)));
+                std::make_shared<PieceRef>(piece, dir));
         }
     }
 
@@ -234,9 +234,8 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
     std::set< std::shared_ptr<PieceRef> >* possible = nullptr;
     for (auto loc : unvisited) {
-        feasible_pieces[loc->x][loc->y] = std::unique_ptr< std::vector<
-            std::shared_ptr<PieceRef> > >(new std::vector<
-                std::shared_ptr<PieceRef> >);
+        feasible_pieces[loc->x][loc->y] = std::make_unique< std::vector<
+            std::shared_ptr<PieceRef> > >();
 
         if (board.IsCorner(loc->x, loc->y)) {
             possible = &unplaced_corners;
