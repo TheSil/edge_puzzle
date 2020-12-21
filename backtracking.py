@@ -55,7 +55,7 @@ if __name__ == '__main__':
     while True:
         it += 1
         if time.time() >= steps_report:
-            #print(f"{it} iterations/s")
+            //print(f"{it} iterations/s")
             it = 0
             steps_report = time.time() + 1
 

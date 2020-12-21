@@ -6,7 +6,7 @@ using namespace edge::backtracker;
 
 Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
     : board(board), best_score(-1),
-    backtracked_position(nullptr), find_all(find_all), connecting(true),
+    find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false),
     best_unplaced_container(nullptr)
@@ -137,9 +137,10 @@ bool Backtracker::Step()
         std::map<int, std::tuple<int, Board::Loc*, std::shared_ptr<PieceRef> > > counts;
         for (auto& loc : best_feasible_locations) {
             for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
-                std::get<0>(counts[piece_ref->GetId()]) += 1;
-                std::get<1>(counts[piece_ref->GetId()]) = loc;
-                std::get<2>(counts[piece_ref->GetId()]) = piece_ref;;
+                int id = piece_ref->GetId();
+                std::get<0>(counts[id]) += 1;
+                std::get<1>(counts[id]) = loc;
+                std::get<2>(counts[id]) = piece_ref;
             }
         }
 
@@ -168,7 +169,6 @@ bool Backtracker::Step()
         if (Backtrack()) {
             if (stack.backtrack_to == stack.visited.size()) {
                 stack.backtrack_to = 0;
-                backtracked_position = nullptr;
                 state = State::SEARCHING;
             }
         }
@@ -235,17 +235,17 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
         feasible_pieces[loc->x][loc->y] = std::make_unique< std::vector<
             std::shared_ptr<PieceRef> > >();
 
-        if (board.IsCorner(loc->x, loc->y)) {
+        if (loc->type == Board::LocType::CORNER) {
             possible = &unplaced_corners;
         }
-        else if (board.IsEdge(loc->x, loc->y)) {
+        else if (loc->type == Board::LocType::EDGE) {
             possible = &unplaced_edges;
         }
         else {
             possible = &unplaced_inner;
         }
 
-        if ((connecting || board.IsInner(loc->x, loc->y)) && !stack.IsEmpty()) {
+        if ((connecting || loc->type == Board::LocType::INNER) && !stack.IsEmpty()) {
             // for inner pieces, check if they have any neighbours, otherwise we
             // are wasting time computing those
             int neighbours = 0;
@@ -292,10 +292,10 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             continue;
         }
 
-        if (board.IsCorner(loc->x, loc->y)) {
+        if (loc->type == Board::LocType::CORNER) {
             possible = &unplaced_corners;
         }
-        else if (board.IsEdge(loc->x, loc->y)) {
+        else if (loc->type == Board::LocType::EDGE) {
             possible = &unplaced_edges;
         }
         else {
@@ -319,7 +319,6 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             break;
         }
     }
-
 }
 
 bool Backtracker::CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
@@ -413,10 +412,6 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
     best_unplaced_container->erase(ref);
     unvisited.erase(loc);
     stack.visited.push(loc);
-    if (backtracked_position && backtracked_position != loc) {
-        throw std::exception("Removing backtracking position when placing piece?!?");
-    }
-    backtracked_position = nullptr;
 }
 
 bool Backtracker::Backtrack()
@@ -434,10 +429,10 @@ bool Backtracker::Backtrack()
 
     stack.visited.top().forbidden[removing].insert(removing->ref);
 
-    if (board.IsCorner(removing->x, removing->y)) {
+    if (removing->type == Board::LocType::CORNER) {
         unplaced_corners.insert(removing->ref);
     }
-    else if (board.IsEdge(removing->x, removing->y)) {
+    else if (removing->type == Board::LocType::EDGE) {
         unplaced_edges.insert(removing->ref);
     }
     else {
@@ -445,7 +440,6 @@ bool Backtracker::Backtrack()
     }
     board.RemovePiece(removing);
 
-    backtracked_position = removing;
     return true;
 }
 

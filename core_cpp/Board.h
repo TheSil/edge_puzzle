@@ -9,12 +9,21 @@ namespace edge {
 class Board
 {
 public:
+    enum class LocType {
+        UNKNOWN,
+        CORNER,
+        EDGE,
+        INNER
+    };
+
     struct Loc
     {
         std::shared_ptr<PieceRef> ref;
         Loc* neighbours[4];
         const HintDef* hint;
         int x, y;
+        LocType type;
+
 
         Loc();
         Loc(const Loc& other);
@@ -69,13 +78,6 @@ public:
         Board::Loc* loc2);
 
     Loc* GetLocation(int x, int y);
-
-    bool IsCorner(int x, int y);
-
-    bool IsInner(int x, int y);
-
-    bool IsEdge(int x, int y);
-
 
 private:
 

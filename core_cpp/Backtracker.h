@@ -76,13 +76,11 @@ private:
     int finalizing_threshold;
 
     std::set<Board::Loc*> unvisited;
-    Board::Loc* backtracked_position;
     bool find_all;
     bool enable_finalizing;
     bool connecting;
     bool constraint_reducing;
 
-    std::set < std::shared_ptr<PieceRef> > feasible_possibilities;
     std::vector<Board::Loc*> best_feasible_locations;
     std::vector<std::vector<
         std::unique_ptr< std::vector<

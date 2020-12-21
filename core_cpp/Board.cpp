@@ -11,7 +11,7 @@ int ScoreBetween(const Board::Loc* loc) {
     return (loc->ref->GetPattern(FIRST) == second->ref->GetPattern(SECOND)) ? 1 : 0;
 }
 
-Board::Loc::Loc() : hint(nullptr), x(0), y(0)
+Board::Loc::Loc() : hint(nullptr), x(0), y(0), type(Board::LocType::UNKNOWN)
 {
     // need to be relinked
     neighbours[0] = 0;
@@ -20,7 +20,7 @@ Board::Loc::Loc() : hint(nullptr), x(0), y(0)
     neighbours[3] = 0;
 }
 
-Board::Loc::Loc(const Loc& other) : hint(other.hint), x(other.x), y(other.y)
+Board::Loc::Loc(const Loc& other) : hint(other.hint), x(other.x), y(other.y), type(other.type)
 {
     // ref ignored, it is always empty during copy/assignment, must be relinked
     // same for neighbours
@@ -39,6 +39,7 @@ Board::Loc& Board::Loc::operator= (const Board::Loc& other)
         hint = other.hint;
         x = other.x;
         y = other.y;
+        type = other.type;
 
         neighbours[0] = 0;
         neighbours[1] = 0;
@@ -92,22 +93,32 @@ Board::Board(const PuzzleDef* def)
     corners.push_back(std::pair<int, int>(def->GetHeight() - 1, 0));
     corners.push_back(std::pair<int, int>(def->GetHeight() - 1, def->GetWidth() - 1));
 
+    state.board[0][0].type = LocType::CORNER;
+    state.board[0][def->GetWidth() - 1].type = LocType::CORNER;
+    state.board[def->GetHeight() - 1][0].type = LocType::CORNER;
+    state.board[def->GetHeight() - 1][def->GetWidth() - 1].type = LocType::CORNER;
+
     for (int k = 1; k < def->GetWidth() - 1; ++k) {
         top_edges.push_back(std::pair<int, int>(0, k));
         bottom_edges.push_back(std::pair<int, int>(def->GetHeight() - 1, k));
         edges.push_back(std::pair<int, int>(0, k));
         edges.push_back(std::pair<int, int>(def->GetHeight() - 1, k));
+        state.board[0][k].type = LocType::EDGE;
+        state.board[def->GetHeight() - 1][k].type = LocType::EDGE;
     }
     for (int k = 1; k < def->GetHeight() - 1; ++k) {
         left_edges.push_back(std::pair<int, int>(k, 0));
         right_edges.push_back(std::pair<int, int>(k, def->GetWidth() - 1));
         edges.push_back(std::pair<int, int>(k, 0));
         edges.push_back(std::pair<int, int>(k, def->GetWidth() - 1));
+        state.board[k][0].type = LocType::EDGE;
+        state.board[k][def->GetWidth() - 1].type = LocType::EDGE;
     }
 
     for (int i = 1; i < def->GetHeight() - 1; ++i) {
         for (int j = 1; j < def->GetWidth() - 1; ++j) {
             inner.push_back(std::pair<int, int>(i, j));
+            state.board[i][j].type = LocType::INNER;
         }
     }
 
@@ -390,25 +401,6 @@ void Board::SwapLocations(Board::Loc* loc1,
 Board::Loc* Board::GetLocation(int x, int y)
 {
     return &state.board[x][y];
-}
-
-bool Board::IsCorner(int x, int y)
-{
-    return (x == 0 && y == 0) ||
-           (x == 0 && (y == def->GetWidth() - 1)) ||
-          ((x == def->GetHeight() - 1) && y == 0) ||
-          ((x == def->GetHeight() - 1) && (y == def->GetWidth() - 1));
-}
-
-bool Board::IsInner(int x, int y)
-{
-    return (0 < x) && (x < (def->GetHeight() - 1)) &&
-           (0 < y) && (y < (def->GetWidth() - 1));
-}
-
-bool Board::IsEdge(int x, int y)
-{
-    return !IsInner(x, y) && !IsCorner(x, y);
 }
 
 bool Board::AdjustDirInner(Loc* loc)
