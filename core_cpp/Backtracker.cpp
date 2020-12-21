@@ -4,18 +4,23 @@
 
 using namespace edge;
 
-Backtracker::Backtracker(Board& board)
+Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
     : board(board), best_score(-1), backtrack_to(0),
-    backtracked_position(nullptr), find_all(false), connecting(true),
+    backtracked_position(nullptr), find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false),
     best_unplaced_container(nullptr)
 {
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
-            // TBD some logic with pieces_map here in python code
+            if (!pieces_map || pieces_map->find(std::pair<int,int>(x,y)) != pieces_map->end())
             unvisited.insert(board.GetLocation(x, y));
+
         }
+    }
+
+    if (pieces_map) {
+        find_all = true;
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetCorners()) {
@@ -99,6 +104,7 @@ bool Backtracker::Step()
         if (unvisited.empty()) {
             if (find_all) {
                 counter += 1;
+                printf("%i-th solution found\n", counter);
             }
             else {
                 // everything already placed, solved...
@@ -242,8 +248,7 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             possible = &unplaced_inner;
         }
 
-        if (connecting && !visited.empty() ||
-            board.IsInner(loc->x, loc->y)) {
+        if ((connecting || board.IsInner(loc->x, loc->y)) && !visited.empty()) {
             // for inner pieces, check if they have any neighbours, otherwise we
             // are wasting time computing those
             int neighbours = 0;
@@ -461,4 +466,9 @@ void Backtracker::Backtrack()
 int Backtracker::Power(int base, int exponent)
 {
     return 1;
+}
+
+int Backtracker::GetCounter()
+{
+    return counter;
 }

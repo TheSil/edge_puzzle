@@ -41,13 +41,26 @@ int main(int argc, char* argv[])
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
-#if 0 // BACKTRACKER
+#if 1 // BACKTRACKER
 
-    edge::Backtracker backtracker(board);
+    std::set<std::pair<int, int>>* pMap = nullptr;
+    //tested fields map
+    //std::set<std::pair<int, int>> map;
+    //for (int x = 0; x < def.GetHeight(); ++x) {
+    //    for (int y = 0; y < def.GetWidth(); ++y) {
+    //        if (x <= 2 || y <= 2 || x >= def.GetHeight() - 3 || y >= def.GetWidth() - 3)
+    //            map.insert(std::pair<int,int>(x,y));
+    //    }
+    //}
+    //pMap = &map;
+
+    edge::Backtracker backtracker(board, pMap, true);
+
     int i = 0;
     int start = (int)time(0);
     int score = 0;
     int max_score = 0;
+    int prev_counter = 0;
     printf("score: %i\n", score);
     std::string last_save = "";
     while (backtracker.Step()) {
@@ -74,7 +87,11 @@ int main(int argc, char* argv[])
         if (i % 5 == 0) {
             Sleep(1);
         }
-        
+        if (backtracker.GetCounter() != prev_counter) {
+            prev_counter = backtracker.GetCounter();
+            printf("counter: %i \n", prev_counter);
+        }
+
         //int now = (int)time(0);
         //if (now - start >= 1) {
         //    printf("%i iterations/s\n", i);
@@ -89,7 +106,7 @@ int main(int argc, char* argv[])
     board.Save(ss.str());
 #endif
 
-#if 1 // swapper
+#if 0 // swapper
 
     std::string load_file = "";
     if (argc > 3) {
@@ -151,7 +168,7 @@ int main(int argc, char* argv[])
         score = board.GetScore();
         if (board.GetScore() > max_score) {
             max_score = score;
-            if (score > 454) {
+            if (score > 455) {
                 try {
                     remove(last_save.c_str());
                 }

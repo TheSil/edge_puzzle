@@ -188,6 +188,9 @@ class Backtracker:
         self.board.fix_orientation()
 
     def backtrack(self):
+        if not self.visited:
+            return False
+
         removing = self.visited.pop()
         self.unvisited[removing] = 0
         i = removing[0]
@@ -198,7 +201,8 @@ class Backtracker:
         self.explored[stack_pos] += self.fact[len(self.unplaced_corners_ids)] \
                                     * self.fact[len(self.unplaced_edges_ids)] \
                                     * self.fact[len(self.unplaced_inner_ids)] * (4 ** len(self.unplaced_inner_ids))
-        self.explored[stack_pos + 1] = 0
+        if len(self.explored) > stack_pos + 1:
+            self.explored[stack_pos + 1] = 0
 
         if stack_pos not in self.forbidden[removing]:
             self.forbidden[removing][stack_pos] = set()
@@ -247,7 +251,7 @@ class Backtracker:
                 possible = self.unplaced_inner
                 possible_ids = self.unplaced_inner_ids
 
-            if (self.connecting and self.visited) or self.board.is_inner(i, j):
+            if (self.connecting or self.board.is_inner(i, j)) and self.visited:
                 # for inner pieces, check if they have any neighbours, otherwise we
                 # are wasting time computing those
                 neighbours = 0
@@ -434,6 +438,7 @@ class Backtracker:
             if not self.unvisited:
                 if self.find_all:
                     self.counter += 1
+                    print(f"Next solution found ({self.counter})")
                 else:
                     # everything already placed, solved...
                     self.state = self.SOLVED

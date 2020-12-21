@@ -9,7 +9,9 @@ namespace edge {
 
 class Backtracker {
 public:
-    Backtracker(Board& board);
+    Backtracker(Board& board, 
+        std::set<std::pair<int, int>>* pieces_map = nullptr, 
+        bool find_all = false);
 
     bool Step();
 
@@ -23,6 +25,9 @@ public:
 
     // TBD - needs more works, arbitrary precision computations...
     int Power(int base, int exponent);
+
+    // debug
+    int GetCounter();
 
 private:
     enum class State {

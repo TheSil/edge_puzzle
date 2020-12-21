@@ -31,7 +31,7 @@ if __name__ == '__main__':
     pieces_map = []
     for i in range((board.puzzle_def.height)):
         for j in range((board.puzzle_def.width)):
-            if i <=1 or j<=1 or i>= board.puzzle_def.height-2 or j>=board.puzzle_def.width-2:
+            if i+j == 1: #or i>= board.puzzle_def.height-3 or j>=board.puzzle_def.width-3:
                 pieces_map.append((i,j))
 
     backtracker = Backtracker(board,
@@ -52,6 +52,9 @@ if __name__ == '__main__':
 
     while True:
         backtracker.step()
+        # if backtracker.counter == 1:
+        #     board.save("test.csv")
+
         counter += 1
 
         if counter >= next_board_update:

@@ -38,7 +38,8 @@ if __name__ == '__main__':
                               enable_finalizing=False,
                               constraint_reducing=(not args.disable_reducing),
                               connecting=True,
-                              grid_file=args.stats)
+                              grid_file=args.stats,
+                              find_all=True)
     start = time.time()
     running_min = 0
     running_sec = 0
@@ -54,15 +55,15 @@ if __name__ == '__main__':
     while True:
         it += 1
         if time.time() >= steps_report:
-            print(f"{it} iterations/s")
+            #print(f"{it} iterations/s")
             it = 0
             steps_report = time.time() + 1
 
 
         backtracker.step()
         val = board.evaluate()
-        if backtracker.state == backtracker.SOLVED:
-            print(f"Solved in {it} iterations")
+        # if backtracker.state == backtracker.SOLVED:
+        #     print(f"Solved in {it} iterations")
 
         if best < val:
             best_board = copy.deepcopy(board)
