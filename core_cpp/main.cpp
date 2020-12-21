@@ -92,12 +92,12 @@ int main(int argc, char* argv[])
             printf("counter: %i \n", prev_counter);
         }
 
-        //int now = (int)time(0);
-        //if (now - start >= 1) {
-        //    printf("%i iterations/s\n", i);
-        //    i = 0;
-        //    start = now;
-        //}
+        int now = (int)time(0);
+        if (now - start >= 1) {
+            printf("max_score:%i, iters: %i\n", max_score, i);
+            i = 0;
+            start = now;
+        }
     }
 
     printf("SOLVED!\n");
