@@ -17,14 +17,11 @@ public:
 
     void CheckFeasible(bool ignore_impossible = false);
 
-    bool CanBePlacedAt(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref);
+    bool CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
 
-    void Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref);
+    void Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
 
-    void Backtrack();
-
-    // TBD - needs more works, arbitrary precision computations...
-    int Power(int base, int exponent);
+    bool Backtrack();
 
     // debug
     int GetCounter();
@@ -34,7 +31,7 @@ private:
         SEARCHING = 0,
         BACKTRACKING = 1,
         FINALIZING = 2,
-        SOLVED = 3
+        FINISHED = 3
     };
 
     Board& board;
@@ -44,16 +41,16 @@ private:
     int backtrack_to;
     int counter;
     int finalizing_threshold;
-    std::stack<Board::BoardLoc*> visited;
-    std::set<Board::BoardLoc*> unvisited;
-    Board::BoardLoc* backtracked_position;
+    std::stack<Board::Loc*> visited;
+    std::set<Board::Loc*> unvisited;
+    Board::Loc* backtracked_position;
     bool find_all;
     bool enable_finalizing;
     bool connecting;
     bool constraint_reducing;
 
     std::set < std::shared_ptr<PieceRef> > feasible_possibilities;
-    std::vector<Board::BoardLoc*> best_feasible_locations;
+    std::vector<Board::Loc*> best_feasible_locations;
     std::vector<std::vector<
         std::unique_ptr< std::vector<
         std::shared_ptr<PieceRef> > > > > feasible_pieces;
@@ -64,7 +61,7 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
 
-    std::map<Board::BoardLoc*,
+    std::map<Board::Loc*,
         std::map<int, std::set< std::shared_ptr<PieceRef> > > > forbidden;
 };
 

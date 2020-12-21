@@ -120,8 +120,8 @@ bool Swapper::DoQuickSwaps()
     std::array<PieceType, 3> seq = { PieceType::CORNERS , PieceType::EDGES , PieceType::INNER };
     std::random_shuffle(seq.begin(), seq.end());
     std::vector<
-        std::pair<Board::BoardLoc*,
-        Board::BoardLoc*>> same_score_pieces_pairs;
+        std::pair<Board::Loc*,
+        Board::Loc*>> same_score_pieces_pairs;
 
     for (auto type : seq) {
         bool found = false;
@@ -170,8 +170,8 @@ bool Swapper::DoQuickSwaps()
 }
 
 bool Swapper::DoQuickSwapsCorners(int score_to_beat, std::vector<
-    std::pair<Board::BoardLoc*,
-    Board::BoardLoc*>>&same_score_pieces_pairs)
+    std::pair<Board::Loc*,
+    Board::Loc*>>&same_score_pieces_pairs)
 {
     auto& cont = swappable_corners;
     std::vector<size_t> idx(cont.size());
@@ -200,8 +200,8 @@ bool Swapper::DoQuickSwapsCorners(int score_to_beat, std::vector<
             if (after == score_to_beat)
             {
                 same_score_pieces_pairs.push_back(
-                    std::pair<Board::BoardLoc*,
-                    Board::BoardLoc* >(loc1, loc2));
+                    std::pair<Board::Loc*,
+                    Board::Loc* >(loc1, loc2));
             }
 
             board.SwapLocations(loc1, loc2);
@@ -212,8 +212,8 @@ bool Swapper::DoQuickSwapsCorners(int score_to_beat, std::vector<
 }
 
 bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
-    std::pair<Board::BoardLoc*,
-    Board::BoardLoc*>>&same_score_pieces_pairs)
+    std::pair<Board::Loc*,
+    Board::Loc*>>&same_score_pieces_pairs)
 {
     auto& cont = swappable_edges;
     std::vector<size_t> idx(cont.size());
@@ -262,8 +262,8 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
             if (score_before + diff == score_to_beat)
             {
                 same_score_pieces_pairs.push_back(
-                    std::pair<Board::BoardLoc*,
-                    Board::BoardLoc* >(loc1, loc2));
+                    std::pair<Board::Loc*,
+                    Board::Loc* >(loc1, loc2));
             }
 
             board.SwapLocations(loc1, loc2);
@@ -276,8 +276,8 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
 }
 
 bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
-    std::pair<Board::BoardLoc*,
-    Board::BoardLoc*>>&same_score_pieces_pairs)
+    std::pair<Board::Loc*,
+    Board::Loc*>>&same_score_pieces_pairs)
 {
     auto& cont = swappable_inners;
     std::vector<size_t> idx(cont.size());
@@ -327,8 +327,8 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
 
                     if (piece_score_after == piece_score_before) {
                         same_score_pieces_pairs.push_back(
-                            std::pair<Board::BoardLoc*,
-                            Board::BoardLoc* >(loc1, loc2));
+                            std::pair<Board::Loc*,
+                            Board::Loc* >(loc1, loc2));
                     }
 
                 }
@@ -343,8 +343,8 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
     return false;
 }
 
-bool Swapper::HaveCommonEdge(Board::BoardLoc* loc1,
-    Board::BoardLoc* loc2)
+bool Swapper::HaveCommonEdge(Board::Loc* loc1,
+    Board::Loc* loc2)
 {
     if (loc1->y == loc2->y) {
         if (loc1->x + 1 == loc2->x) {

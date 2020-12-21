@@ -22,19 +22,19 @@ private:
     bool DoQuickSwaps();
 
     bool DoQuickSwapsCorners(int score_to_beat, std::vector<
-        std::pair<Board::BoardLoc*,
-        Board::BoardLoc*>>&same_score_pieces_pairs);
+        std::pair<Board::Loc*,
+        Board::Loc*>>&same_score_pieces_pairs);
 
     bool DoQuickSwapsEdges(int score_to_beat, std::vector<
-        std::pair<Board::BoardLoc*,
-        Board::BoardLoc*>>&same_score_pieces_pairs);
+        std::pair<Board::Loc*,
+        Board::Loc*>>&same_score_pieces_pairs);
 
     bool DoQuickSwapsInners(int score_to_beat, std::vector<
-        std::pair<Board::BoardLoc*,
-        Board::BoardLoc*>>&same_score_pieces_pairs);
+        std::pair<Board::Loc*,
+        Board::Loc*>>&same_score_pieces_pairs);
 
-    bool HaveCommonEdge(Board::BoardLoc* loc1,
-        Board::BoardLoc* loc2);
+    bool HaveCommonEdge(Board::Loc* loc1,
+        Board::Loc* loc2);
 
     void Shuffle();
 

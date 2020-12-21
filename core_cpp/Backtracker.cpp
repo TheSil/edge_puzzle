@@ -108,7 +108,7 @@ bool Backtracker::Step()
             }
             else {
                 // everything already placed, solved...
-                state = State::SOLVED;
+                state = State::FINISHED;
                 return false;
             }
         }
@@ -135,12 +135,12 @@ bool Backtracker::Step()
             return true;
         }
 
-        Board::BoardLoc* selected_loc = nullptr;
+        Board::Loc* selected_loc = nullptr;
         std::shared_ptr <PieceRef> selected_piece_ref = nullptr;
 
         // from the set of selected pieces, select one with least number
         // of possibilities(most constrained)
-        std::map<int, std::tuple<int, Board::BoardLoc*, std::shared_ptr<PieceRef> > > counts;
+        std::map<int, std::tuple<int, Board::Loc*, std::shared_ptr<PieceRef> > > counts;
         for (auto& loc : best_feasible_locations) {
             for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
                 std::get<0>(counts[piece_ref->GetId()]) += 1;
@@ -152,7 +152,7 @@ bool Backtracker::Step()
         // TBD: this whole selecting of maximum seems obfuscate, simplify...
         int max_count = -1;
         std::shared_ptr<PieceRef> max_ref = nullptr;
-        Board::BoardLoc* max_loc = nullptr;
+        Board::Loc* max_loc = nullptr;
         for (auto& item : counts) {
             int count = std::get<0>(item.second);
             if (max_count == -1 || count > max_count) {
@@ -171,11 +171,15 @@ bool Backtracker::Step()
     break;
     case State::BACKTRACKING:
     {
-        Backtrack();
-        if (backtrack_to == visited.size()) {
-            backtrack_to = 0;
-            backtracked_position = nullptr;
-            state = State::SEARCHING;
+        if (Backtrack()) {
+            if (backtrack_to == visited.size()) {
+                backtrack_to = 0;
+                backtracked_position = nullptr;
+                state = State::SEARCHING;
+            }
+        }
+        else {
+            state = State::FINISHED;
         }
     }
     break;
@@ -187,7 +191,7 @@ bool Backtracker::Step()
         }
         else {
             int most_neighbours = -1;
-            Board::BoardLoc* best_location = nullptr;
+            Board::Loc* best_location = nullptr;
             std::shared_ptr <PieceRef> best_piece_ref = nullptr;
             for (auto& loc : best_feasible_locations) {
                 int count = 0;
@@ -209,7 +213,7 @@ bool Backtracker::Step()
         }
     }
     break;
-    case State::SOLVED:
+    case State::FINISHED:
     {
         return false;
     }
@@ -325,7 +329,7 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
 }
 
-bool Backtracker::CanBePlacedAt(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
+bool Backtracker::CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 {
     if (loc->neighbours[NORTH] && loc->neighbours[NORTH]->ref)
     {
@@ -408,7 +412,7 @@ bool Backtracker::CanBePlacedAt(Board::BoardLoc* loc, std::shared_ptr<PieceRef> 
     return true;
 }
 
-void Backtracker::Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
+void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 {
     LDEBUG("Placing %i at (%i, %i) dir=%i stack_size=%i\n",
         ref->GetId(), loc->x, loc->y, ref->GetDir(), static_cast<int>(visited.size()) + 1);
@@ -422,9 +426,13 @@ void Backtracker::Place(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
     backtracked_position = nullptr;
 }
 
-void Backtracker::Backtrack()
+bool Backtracker::Backtrack()
 {
-    Board::BoardLoc* removing = visited.top();
+    if (visited.empty()) {
+        return false;
+    }
+
+    Board::Loc* removing = visited.top();
     visited.pop();
     unvisited.insert(removing);
     int stack_pos = static_cast<int>(visited.size());
@@ -459,12 +467,7 @@ void Backtracker::Backtrack()
     }
 
     backtracked_position = removing;
-}
-
-// TBD - needs more works, arbitrary precision computations...
-int Backtracker::Power(int base, int exponent)
-{
-    return 1;
+    return true;
 }
 
 int Backtracker::GetCounter()

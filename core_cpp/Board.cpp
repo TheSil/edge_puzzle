@@ -5,13 +5,13 @@
 using namespace edge;
 
 template <int FIRST, int SECOND>
-int ScoreBetween(const Board::BoardLoc* loc) {
+int ScoreBetween(const Board::Loc* loc) {
     auto second = loc->neighbours[FIRST];
     if (!loc || !loc->ref || !second || !second->ref) return 0;
     return (loc->ref->GetPattern(FIRST) == second->ref->GetPattern(SECOND)) ? 1 : 0;
 }
 
-Board::BoardLoc::BoardLoc() : hint(nullptr), x(0), y(0)
+Board::Loc::Loc() : hint(nullptr), x(0), y(0)
 {
     // need to be relinked
     neighbours[0] = 0;
@@ -20,7 +20,7 @@ Board::BoardLoc::BoardLoc() : hint(nullptr), x(0), y(0)
     neighbours[3] = 0;
 }
 
-Board::BoardLoc::BoardLoc(const BoardLoc& other) : hint(other.hint), x(other.x), y(other.y)
+Board::Loc::Loc(const Loc& other) : hint(other.hint), x(other.x), y(other.y)
 {
     // ref ignored, it is always empty during copy/assignment, must be relinked
     // same for neighbours
@@ -30,7 +30,7 @@ Board::BoardLoc::BoardLoc(const BoardLoc& other) : hint(other.hint), x(other.x),
     neighbours[3] = 0;
 }
 
-Board::BoardLoc& Board::BoardLoc::operator= (const Board::BoardLoc& other)
+Board::Loc& Board::Loc::operator= (const Board::Loc& other)
 {
     // ref ignored, it is always empty during copy/assignment, must be relinked
     // same for neighbours
@@ -240,7 +240,7 @@ void Board::Randomize()
     }
 }
 
-inline void AdjustDirBorderSafe(Board::BoardLoc* loc, int dir)
+inline void AdjustDirBorderSafe(Board::Loc* loc, int dir)
 {
     if (loc->ref) loc->ref->SetDir(dir);
 }
@@ -266,7 +266,7 @@ void Board::AdjustDirBorder()
     }
 }
 
-void Board::AdjustDirBorderSingle(Board::BoardLoc* loc)
+void Board::AdjustDirBorderSingle(Board::Loc* loc)
 {
     if ((loc->x == 0) && (loc->y == 0))  AdjustDirBorderSafe(loc, EAST);
     if ((loc->x == 0) && (loc->y == def->GetWidth() - 1))  AdjustDirBorderSafe(loc, SOUTH);
@@ -306,7 +306,7 @@ void Board::PutPiece(int id, int x, int y, int dir)
     state.locations_per_id[id] = &state.board[x][y];
 }
 
-void Board::PutPiece(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
+void Board::PutPiece(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 {
     if (state.locations_per_id[ref->GetId()]) {
         // alrady placed, swap positions
@@ -319,7 +319,7 @@ void Board::PutPiece(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref)
     state.locations_per_id[ref->GetId()] = loc;
 }
 
-void Board::RemovePiece(Board::BoardLoc* loc)
+void Board::RemovePiece(Board::Loc* loc)
 {
     state.locations_per_id[loc->ref->GetId()] = nullptr;
     loc->ref = nullptr;
@@ -346,7 +346,7 @@ int Board::GetScore() const
     return score;
 }
 
-int Board::GetScore(BoardLoc* loc)
+int Board::GetScore(Loc* loc)
 {
     int score = 0;
     score += ScoreBetween<EAST, WEST>(loc);
@@ -371,13 +371,13 @@ std::vector< std::pair<int, int> >& Board::GetInnersCoords()
     return inner;
 }
 
-std::vector< Board::BoardLoc* >& Board::GetLocations()
+std::vector< Board::Loc* >& Board::GetLocations()
 {
     return state.locations_per_id;
 }
 
-void Board::SwapLocations(Board::BoardLoc* loc1,
-    Board::BoardLoc* loc2)
+void Board::SwapLocations(Board::Loc* loc1,
+    Board::Loc* loc2)
 {
     auto& locs = GetLocations();
     locs[0] = nullptr; // used only to swap zero for non-existent pieces
@@ -387,7 +387,7 @@ void Board::SwapLocations(Board::BoardLoc* loc1,
     std::swap(loc1->ref, loc2->ref);
 }
 
-Board::BoardLoc* Board::GetLocation(int x, int y)
+Board::Loc* Board::GetLocation(int x, int y)
 {
     return &state.board[x][y];
 }
@@ -411,7 +411,7 @@ bool Board::IsEdge(int x, int y)
     return !IsInner(x, y) && !IsCorner(x, y);
 }
 
-bool Board::AdjustDirInner(BoardLoc* loc)
+bool Board::AdjustDirInner(Loc* loc)
 {
     if (!loc->ref || loc->hint) {
         return false;

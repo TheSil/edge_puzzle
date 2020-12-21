@@ -9,22 +9,22 @@ namespace edge {
 class Board
 {
 public:
-    struct BoardLoc
+    struct Loc
     {
         std::shared_ptr<PieceRef> ref;
-        BoardLoc* neighbours[4];
+        Loc* neighbours[4];
         const HintDef* hint;
         int x, y;
 
-        BoardLoc();
-        BoardLoc(const BoardLoc& other);
-        BoardLoc& operator= (const BoardLoc& other);
+        Loc();
+        Loc(const Loc& other);
+        Loc& operator= (const Loc& other);
     };
 
     struct State {
         std::vector< std::vector<
-            BoardLoc > > board;
-        std::vector< BoardLoc* > locations_per_id;
+            Loc > > board;
+        std::vector< Loc* > locations_per_id;
     };
 
     Board(const PuzzleDef* def);
@@ -41,21 +41,21 @@ public:
 
     void AdjustDirBorder();
 
-    void AdjustDirBorderSingle(Board::BoardLoc* loc);
+    void AdjustDirBorderSingle(Board::Loc* loc);
 
     void AdjustDirInner();
 
     void PutPiece(int id, int x, int y, int dir);
 
-    void PutPiece(Board::BoardLoc* loc, std::shared_ptr<PieceRef> ref);
+    void PutPiece(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
 
-    void RemovePiece(Board::BoardLoc* loc);
+    void RemovePiece(Board::Loc* loc);
 
     const PuzzleDef* GetPuzzleDef() const;
 
     int GetScore() const;
 
-    int GetScore(BoardLoc* loc);
+    int GetScore(Loc* loc);
 
     std::vector< std::pair<int, int> >& GetCornersCoords();
 
@@ -63,12 +63,12 @@ public:
 
     std::vector< std::pair<int, int> >& GetInnersCoords();
 
-    std::vector< BoardLoc* >& GetLocations();
+    std::vector< Loc* >& GetLocations();
 
-    void SwapLocations(Board::BoardLoc* loc1,
-        Board::BoardLoc* loc2);
+    void SwapLocations(Board::Loc* loc1,
+        Board::Loc* loc2);
 
-    BoardLoc* GetLocation(int x, int y);
+    Loc* GetLocation(int x, int y);
 
     bool IsCorner(int x, int y);
 
@@ -83,7 +83,7 @@ private:
 
     void UpdateIds();
 
-    bool AdjustDirInner(BoardLoc* loc);
+    bool AdjustDirInner(Loc* loc);
 
 private:
 
