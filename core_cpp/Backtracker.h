@@ -7,10 +7,43 @@
 
 namespace edge {
 
+namespace backtracker {
+
+class Stack {
+public:
+
+    struct LevelInfo {
+        Board::Loc* loc;
+        std::map<Board::Loc*,
+            std::set< std::shared_ptr<PieceRef> > > forbidden;
+
+        LevelInfo(Board::Loc* loc) : loc(loc)
+        {
+        }
+    };
+
+    bool IsEmpty() {
+        // empty == only root
+        return visited.size() == 1;
+    }
+
+    Stack() : backtrack_to(0)
+    {
+        visited.push(LevelInfo(nullptr)); // root
+    }
+
+    std::stack<LevelInfo> visited;
+    int backtrack_to;
+
+private:
+
+    
+};
+
 class Backtracker {
 public:
-    Backtracker(Board& board, 
-        std::set<std::pair<int, int>>* pieces_map = nullptr, 
+    Backtracker(Board& board,
+        std::set<std::pair<int, int>>* pieces_map = nullptr,
         bool find_all = false);
 
     bool Step();
@@ -36,12 +69,12 @@ private:
 
     Board& board;
     State state;
+    Stack stack;
 
     int best_score;
-    int backtrack_to;
     int counter;
     int finalizing_threshold;
-    std::stack<Board::Loc*> visited;
+
     std::set<Board::Loc*> unvisited;
     Board::Loc* backtracked_position;
     bool find_all;
@@ -60,9 +93,8 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
-
-    std::map<Board::Loc*,
-        std::map<int, std::set< std::shared_ptr<PieceRef> > > > forbidden;
 };
+
+}
 
 }

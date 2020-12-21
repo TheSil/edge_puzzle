@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     //}
     //pMap = &map;
 
-    edge::Backtracker backtracker(board, pMap, true);
+    edge::backtracker::Backtracker backtracker(board, pMap, true);
 
     int i = 0;
     int start = (int)time(0);

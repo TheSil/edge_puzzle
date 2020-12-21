@@ -2,10 +2,10 @@
 #include <algorithm>
 #include "Backtracker.h"
 
-using namespace edge;
+using namespace edge::backtracker;
 
 Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
-    : board(board), best_score(-1), backtrack_to(0),
+    : board(board), best_score(-1),
     backtracked_position(nullptr), find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false),
@@ -41,12 +41,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         for (int dir = 0; dir < 4; ++dir) {
             unplaced_inner.insert(
                 std::make_shared<PieceRef>(piece, dir));
-        }
-    }
-
-    for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
-        for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
-            forbidden[board.GetLocation(x, y)].clear();
         }
     }
 
@@ -89,7 +83,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 
         auto loc = board.GetLocation(hint.x, hint.y);
         unvisited.erase(loc);
-        visited.push(loc);
+        stack.visited.push(Stack::LevelInfo(loc));
     }
 
     board.AdjustDirBorder();
@@ -117,7 +111,7 @@ bool Backtracker::Step()
 
         if (best_score <= 0) {
             // impossible to place anything here... backtrack
-            backtrack_to = static_cast<int>(visited.size()) - 1;
+            stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
             if (unvisited.size() < finalizing_threshold &&
                 enable_finalizing) {
                 state = State::FINALIZING;
@@ -172,8 +166,8 @@ bool Backtracker::Step()
     case State::BACKTRACKING:
     {
         if (Backtrack()) {
-            if (backtrack_to == visited.size()) {
-                backtrack_to = 0;
+            if (stack.backtrack_to == stack.visited.size()) {
+                stack.backtrack_to = 0;
                 backtracked_position = nullptr;
                 state = State::SEARCHING;
             }
@@ -251,7 +245,7 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
             possible = &unplaced_inner;
         }
 
-        if ((connecting || board.IsInner(loc->x, loc->y)) && !visited.empty()) {
+        if ((connecting || board.IsInner(loc->x, loc->y)) && !stack.IsEmpty()) {
             // for inner pieces, check if they have any neighbours, otherwise we
             // are wasting time computing those
             int neighbours = 0;
@@ -266,15 +260,8 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
         for (auto& piece : *possible) {
             if (!board.GetLocations()[piece->GetId()]) {
-                bool allowed = true;
-                for (auto& item : forbidden[loc]) {
-                    auto & forbidden_pieces = item.second;
-                    if (forbidden_pieces.find(piece) != forbidden_pieces.end()) {
-                        allowed = false;
-                        break;
-                    }
-                }
-                if (allowed) {
+                if (stack.visited.top().forbidden[loc].find(piece) 
+                      == stack.visited.top().forbidden[loc].end()) {
                     if (CanBePlacedAt(loc, piece)) {
                         feasible_pieces[loc->x][loc->y]->push_back(piece);
                     }
@@ -419,7 +406,7 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
     board.PutPiece(loc, ref);
     best_unplaced_container->erase(ref);
     unvisited.erase(loc);
-    visited.push(loc);
+    stack.visited.push(loc);
     if (backtracked_position && backtracked_position != loc) {
         throw std::exception("Removing backtracking position when placing piece?!?");
     }
@@ -428,18 +415,18 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 
 bool Backtracker::Backtrack()
 {
-    if (visited.empty()) {
+    if (stack.IsEmpty()) {
         return false;
     }
 
-    Board::Loc* removing = visited.top();
-    visited.pop();
+    Board::Loc* removing = stack.visited.top().loc;
+    stack.visited.pop();
     unvisited.insert(removing);
-    int stack_pos = static_cast<int>(visited.size());
+    int stack_pos = static_cast<int>(stack.visited.size());
     LDEBUG("Removing %i from (%i, %i) stack_size=%i\n",
         removing->ref->GetId(), removing->x, removing->y, static_cast<int>(visited.size()));
 
-    forbidden[removing][stack_pos].insert(removing->ref);
+    stack.visited.top().forbidden[removing].insert(removing->ref);
 
     if (board.IsCorner(removing->x, removing->y)) {
         unplaced_corners.insert(removing->ref);
@@ -451,20 +438,6 @@ bool Backtracker::Backtrack()
         unplaced_inner.insert(removing->ref);
     }
     board.RemovePiece(removing);
-
-    // remove all forbidden due to later position
-    for (auto& pair : forbidden) {
-        auto itr = pair.second.begin();
-        while (itr != pair.second.end())
-        {
-            if (itr->first > stack_pos) {
-                itr = pair.second.erase(itr);
-            }
-            else {
-                ++itr;
-            }
-        }
-    }
 
     backtracked_position = removing;
     return true;
