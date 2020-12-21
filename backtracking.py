@@ -52,10 +52,14 @@ if __name__ == '__main__':
     best = 0
     it = 0
     steps_report = time.time() + 1
+    explored_last = 0
     while True:
         it += 1
         if time.time() >= steps_report:
-            //print(f"{it} iterations/s")
+            explored = backtracker.explored_count()
+
+            print(f"iters/s:{it}, explored/s:{explored - explored_last:.2E}")
+            explored_last = explored
             it = 0
             steps_report = time.time() + 1
 

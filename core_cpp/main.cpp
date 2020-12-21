@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
         int now = (int)time(0);
         if (now - start >= 1) {
-            printf("max_score:%i, iters: %i\n", max_score, i);
+            printf("max_score: %i, curr_score: %i, iters: %i\n", max_score, score, i);
             Sleep(10);
             i = 0;
             start = now;
