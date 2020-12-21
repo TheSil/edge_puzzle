@@ -260,11 +260,17 @@ void Backtracker::CheckFeasible(bool ignore_impossible)
 
         for (auto& piece : *possible) {
             if (!board.GetLocations()[piece->GetId()]) {
-                if (stack.visited.top().forbidden[loc].find(piece) 
-                      == stack.visited.top().forbidden[loc].end()) {
-                    if (CanBePlacedAt(loc, piece)) {
-                        feasible_pieces[loc->x][loc->y]->push_back(piece);
+                auto& forbidden_map = stack.visited.top().forbidden;
+                auto it = forbidden_map.find(loc);
+                bool is_forbidden = false;
+                if (it != forbidden_map.end())
+                {
+                    if (it->second.find(piece) != it->second.end()) {
+                        is_forbidden = true;
                     }
+                }                
+                if (!is_forbidden && CanBePlacedAt(loc, piece)) {
+                    feasible_pieces[loc->x][loc->y]->push_back(piece);
                 }
             }
         }
