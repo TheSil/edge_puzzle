@@ -22,22 +22,25 @@ if __name__ == '__main__':
     ui = ui.BoardUi(board_inst)
     ui.init()
 
-    prev_csv_files = set(glob.glob(os.path.join(args.dir,"*.csv")))
-    file = next(iter(prev_csv_files))
+    prev_csv_files = set()
+    max_score = 0
 
     def update(filename):
         try:
-            print(f"Loading new file {filename}")
+
             board_inst = board.Board(puzzle_def)
             board_inst.load(filename)
-            ui.board = board_inst
-            ui.update()
-            caption = f'S {board_inst.evaluate()}/{board_inst.max_score()}'
-            pygame.display.set_caption(caption)
+            score = board_inst.evaluate()
+            global max_score
+            if score >= max_score:
+                print(f"Loading new file {filename}")
+                max_score = score
+                ui.board = board_inst
+                ui.update()
+                caption = f'S {board_inst.evaluate()}/{board_inst.max_score()}'
+                pygame.display.set_caption(caption)
         except:
             pass
-
-    update(file)
 
     next_check = time.time() + 3
     while True:
@@ -47,8 +50,8 @@ if __name__ == '__main__':
             new = csv_files - prev_csv_files
             prev_csv_files = csv_files
             if new:
-                file = next(iter(new))
-                update(file)
+                for file in new:
+                    update(file)
 
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
