@@ -94,7 +94,16 @@ int main(int argc, char* argv[])
 
         int now = (int)time(0);
         if (now - start >= 1) {
-            printf("max_score: %i, curr_score: %i, iters: %i\n", max_score, score, i);
+            std::string explAbsLast, explAbs, explMax, explRatio;
+            backtracker.GetStats().PrintExploredAbsLast(explAbsLast);
+            backtracker.GetStats().PrintExploredAbs(explAbs);
+            backtracker.GetStats().PrintExploredRatio(explRatio);
+            backtracker.GetStats().PrintExploredMax(explMax);
+
+            printf("max_score: %i, curr_score: %i, iters: %i, "
+                "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n", 
+                max_score, score, i, explAbsLast.c_str(), explAbs.c_str(), explRatio.c_str(), explMax.c_str());
+
             Sleep(10);
             i = 0;
             start = now;

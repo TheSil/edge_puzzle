@@ -4,6 +4,176 @@
 
 using namespace edge::backtracker;
 
+void Stats::Init(Board& board)
+{
+    // pre-calculated factorials, 4 times for each rotation
+    factorial.resize(4 * board.GetPuzzleDef()->GetPieceCount() + 1);
+    factorial[0] = new mpz_t;
+    mpz_init(factorial[0]);
+    mpz_set_ui(factorial[0], 1);
+    for (int i = 1; i < factorial.size(); ++i) {
+        factorial[i] = new mpz_t;
+        mpz_init(factorial[i]);
+        mpz_mul_ui(factorial[i], factorial[i - 1], i);
+    }
+
+    explored.resize(board.GetPuzzleDef()->GetPieceCount());
+    for (auto& val : explored) {
+        val = new mpz_t;
+        mpz_init(val);
+        mpz_set_ui(val, 0);
+    }
+
+    mpz_init(explored_max);
+    mpz_set(explored_max, factorial[4]);
+    mpz_mul(explored_max, explored_max, factorial[board.GetPuzzleDef()->GetEdges().size()]);
+    mpz_mul(explored_max, explored_max, factorial[board.GetPuzzleDef()->GetInner().size()]);
+    mpz_t power;
+    mpz_init(power);
+    mpz_set_ui(power, 4);
+    mpz_pow_ui(power, power, board.GetPuzzleDef()->GetInner().size());
+    mpz_mul(explored_max, explored_max, power);
+    mpz_clear(power);
+
+    mpz_init(absLast);
+    mpz_set_ui(absLast, 0);
+
+    // unplaced count, needed for explored statistics 
+    unplaced_corners_ids_count = 4;
+    unplaced_edges_ids_count = static_cast<int>(board.GetPuzzleDef()->GetEdges().size());
+    unplaced_inner_ids_count = static_cast<int>(board.GetPuzzleDef()->GetInner().size());
+}
+
+void Stats::Update(int stack_pos)
+{
+    mpz_t val;
+    mpz_init(val);
+    mpz_set_ui(val, 1);
+    mpz_mul(val,
+        val, factorial[unplaced_corners_ids_count]);
+    mpz_mul(val,
+        val, factorial[unplaced_edges_ids_count]);
+    mpz_mul(val,
+        val, factorial[unplaced_inner_ids_count]);
+    mpz_t power;
+    mpz_init(power);
+    mpz_set_ui(power, 4);
+    mpz_pow_ui(power, power, unplaced_inner_ids_count);
+    mpz_mul(val,
+        val, power);
+    mpz_add(explored[stack_pos - 1],
+        explored[stack_pos - 1], val);
+    mpz_clear(val);
+    mpz_clear(power);
+
+    if (explored.size() > stack_pos) {
+        mpz_set_ui(explored[stack_pos], 0);
+    }
+}
+
+void Stats::PrintExploredAbs(std::string& val)
+{
+    // sum 
+    mpz_t sum;
+    mpz_init(sum);
+    mpz_set_ui(sum, 0);
+    for (auto& val : explored) {
+        mpz_add(sum, sum, val);
+    }
+
+    mpf_t tmp_float;
+    mpf_init(tmp_float);
+    mpf_set_z(tmp_float, sum);
+    char buf[128];
+    gmp_sprintf(buf, "%.2FE", tmp_float);
+    val = buf;
+
+    mpz_clear(sum);
+    mpf_clear(tmp_float);
+}
+
+void Stats::PrintExploredAbsLast(std::string& val)
+{
+    // sum 
+    mpz_t sum;
+    mpz_init(sum);
+    mpz_set_ui(sum, 0);
+    for (auto& val : explored) {
+        mpz_add(sum, sum, val);
+    }
+
+    mpz_t diff;
+    mpz_init(diff);
+    mpz_sub(diff, sum, absLast);
+
+    // persist this call as a last for next evaluation
+    mpz_set(absLast, sum);
+    mpz_clear(sum);
+
+    mpf_t tmp_float;
+    mpf_init(tmp_float);
+    mpf_set_z(tmp_float, diff);
+    char buf[128];
+    gmp_sprintf(buf, "%.2FE", tmp_float);
+    val = buf;
+
+    mpz_clear(diff);
+    mpf_clear(tmp_float);
+}
+
+void Stats::PrintExploredMax(std::string& val)
+{
+    mpf_t tmp_float;
+    mpf_init(tmp_float);
+    mpf_set_z(tmp_float, explored_max);
+
+    char buf[128];
+    gmp_sprintf(buf, "%.2FE", tmp_float);
+    val = buf;
+
+    mpf_clear(tmp_float);
+}
+
+void Stats::PrintExploredRatio(std::string& val)
+{
+    // sum 
+    mpz_t sum;
+    mpz_init(sum);
+    mpz_set_ui(sum, 0);
+    for (auto& val : explored) {
+        mpz_add(sum, sum, val);
+    }
+
+    mpf_t tmp_float1, tmp_float2;
+    mpf_init(tmp_float1);
+    mpf_set_z(tmp_float1, sum);
+    mpf_init(tmp_float2);
+    mpf_set_z(tmp_float2, explored_max);
+    mpf_div(tmp_float1, tmp_float1, tmp_float2);
+    char buf[128];
+    gmp_sprintf(buf, "%.2FE", tmp_float1);
+    val = buf;
+
+    mpf_clear(tmp_float1);
+    mpf_clear(tmp_float2);
+    mpz_clear(sum);
+}
+
+void Stats::UpdateUnplacedCorners(int amount)
+{
+    unplaced_corners_ids_count += amount;
+}
+
+void Stats::UpdateUnplacedEdges(int amount)
+{
+    unplaced_edges_ids_count += amount;
+}
+
+void Stats::UpdateUnplacedInner(int amount)
+{
+    unplaced_inner_ids_count += amount;
+}
+
 Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
     : board(board), best_score(-1),
     find_all(find_all), connecting(true),
@@ -44,6 +214,8 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
     }
 
+    stats.Init(board);
+
     // hints
     for (auto& hint : board.GetPuzzleDef()->GetHints()) {
         int dir = (hint.dir != -1) ? hint.dir : 0;
@@ -59,6 +231,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_corners.erase(ref);
+            stats.UpdateUnplacedCorners(-1);
         }
 
         to_erase.clear();
@@ -69,6 +242,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_edges.erase(ref);
+            stats.UpdateUnplacedEdges(-1);
         }
 
         to_erase.clear();
@@ -79,6 +253,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_inner.erase(ref);
+            stats.UpdateUnplacedInner(-1);
         }
 
         auto loc = board.GetLocation(hint.x, hint.y);
@@ -87,6 +262,8 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     board.AdjustDirBorder();
+
+
 }
 
 bool Backtracker::Step()
@@ -410,6 +587,21 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
         ref->GetId(), loc->x, loc->y, ref->GetDir(), static_cast<int>(visited.size()) + 1);
     board.PutPiece(loc, ref);
     best_unplaced_container->erase(ref);
+    switch (loc->type)
+    {
+    case Board::LocType::CORNER:
+        stats.UpdateUnplacedCorners(-1);
+        break;
+    case Board::LocType::EDGE:
+        stats.UpdateUnplacedEdges(-1);
+        break;
+    case Board::LocType::INNER:
+        stats.UpdateUnplacedInner(-1);
+        break;
+    default:
+        break;
+    }
+
     unvisited.erase(loc);
     stack.visited.push(loc);
 }
@@ -424,6 +616,11 @@ bool Backtracker::Backtrack()
     stack.visited.pop();
     unvisited.insert(removing);
     int stack_pos = static_cast<int>(stack.visited.size());
+
+    // update statistics
+    stats.Update(stack_pos);
+
+
     LDEBUG("Removing %i from (%i, %i) stack_size=%i\n",
         removing->ref->GetId(), removing->x, removing->y, static_cast<int>(visited.size()));
 
@@ -431,12 +628,15 @@ bool Backtracker::Backtrack()
 
     if (removing->type == Board::LocType::CORNER) {
         unplaced_corners.insert(removing->ref);
+        stats.UpdateUnplacedCorners(1);
     }
     else if (removing->type == Board::LocType::EDGE) {
         unplaced_edges.insert(removing->ref);
+        stats.UpdateUnplacedEdges(1);
     }
     else {
         unplaced_inner.insert(removing->ref);
+        stats.UpdateUnplacedInner(1);
     }
     board.RemovePiece(removing);
 
@@ -446,4 +646,9 @@ bool Backtracker::Backtrack()
 int Backtracker::GetCounter()
 {
     return counter;
+}
+
+Stats& Backtracker::GetStats()
+{
+    return stats;
 }

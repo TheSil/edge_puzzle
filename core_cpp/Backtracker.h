@@ -3,6 +3,7 @@
 #include <set>
 #include <vector>
 #include <stack>
+#include <gmp.h>
 #include "Board.h"
 
 namespace edge {
@@ -37,7 +38,38 @@ public:
 
 private:
 
-    
+};
+
+class Stats {
+public:
+
+    void Init(Board& board);
+
+    void Update(int stack_pos);
+
+    void PrintExploredAbs(std::string& val);
+
+    void PrintExploredAbsLast(std::string& val);
+
+    void PrintExploredMax(std::string& val);
+
+    void PrintExploredRatio(std::string& val);
+
+    void UpdateUnplacedCorners(int amount);
+
+    void UpdateUnplacedEdges(int amount);
+
+    void UpdateUnplacedInner(int amount);
+
+private:
+    std::vector<mpz_ptr> factorial;
+    std::vector<mpz_ptr> explored;
+    mpz_t explored_max;
+    mpz_t absLast;
+    int unplaced_corners_ids_count;
+    int unplaced_edges_ids_count;
+    int unplaced_inner_ids_count;
+
 };
 
 class Backtracker {
@@ -58,6 +90,8 @@ public:
 
     // debug
     int GetCounter();
+
+    Stats& GetStats();
 
 private:
     enum class State {
@@ -91,6 +125,8 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
+
+    Stats stats;
 };
 
 }
