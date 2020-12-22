@@ -316,7 +316,9 @@ bool Backtracker::Step()
         // from the set of selected pieces, select one with least number
         // of possibilities(most constrained)
         std::map<int, std::tuple<int, Board::Loc*, std::shared_ptr<PieceRef> > > counts;
+        random_shuffle(best_feasible_locations.begin(), best_feasible_locations.end());
         for (auto& loc : best_feasible_locations) {
+            random_shuffle(feasible_pieces[loc->x][loc->y]->begin(), feasible_pieces[loc->x][loc->y]->end());
             for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
                 int id = piece_ref->GetId();
                 std::get<0>(counts[id]) += 1;
