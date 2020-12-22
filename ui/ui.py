@@ -25,7 +25,7 @@ class BoardUi:
         pygame.display.set_caption('Puzzle')
         # make the piece width dynamic to fill about the same portion of screen always
         max_dim = max(self.board.puzzle_def.width, self.board.puzzle_def.height)
-        self.piece_width = 700//max_dim
+        self.piece_width = ((700//max_dim)//4)*4
 
         self.DISPLAY = pygame.display.set_mode((self.piece_width * self.board.puzzle_def.width,
                                                 self.piece_width * self.board.puzzle_def.height))
@@ -39,6 +39,7 @@ class BoardUi:
         # construct individual piece images
         color_dim = color_images[1].get_height()
         for id, piece in self.board.puzzle_def.all.items():
+            self.piece_img[id] = []
             high_res = pygame.Surface((2 * color_dim, 2 * color_dim))
             high_res.fill(GRAY)
             color_id = piece.colors[2]
@@ -66,14 +67,13 @@ class BoardUi:
                     180),
                     (color_dim, color_dim))
 
-            high_res = pygame.transform.rotate(high_res, 45)
-            import math
-            h = math.sqrt(2) / 2 * color_dim
-            low_res = pygame.Surface((2 * h, 2 * h))
-            low_res.blit(high_res, (0, 0), (h, h, 2 * h, 2 * h))
-            low_res = pygame.transform.scale(low_res, (self.piece_width, self.piece_width))
-
-            self.piece_img[id] = low_res
+            for dir in range(4):
+                high_res2 = pygame.transform.rotate(high_res, 45 - dir * 90)
+                h = high_res2.get_height()/4
+                low_res = pygame.Surface((2 * h, 2 * h))
+                low_res.blit(high_res2, (0, 0), (h, h, 2 * h, 2 * h))
+                low_res = pygame.transform.scale(low_res, (self.piece_width, self.piece_width))
+                self.piece_img[id].append(low_res)
 
         # empty field
         self.empty_img = pygame.Surface((self.piece_width, self.piece_width))
@@ -91,12 +91,12 @@ class BoardUi:
                          (self.piece_width + x, 0 + y)]
 
         def draw_border():
-            pygame.draw.lines(self.DISPLAY, (50, 50, 50), True, border_points, 2)
+            pygame.draw.lines(self.DISPLAY, (50, 50, 50), True, border_points, 1)
 
         if piece:
             i, j = piece.i, piece.j
             id = piece.piece_def.id
-            self.DISPLAY.blit(pygame.transform.rotate(self.piece_img[id], -piece.dir * 90), (x, y))
+            self.DISPLAY.blit(self.piece_img[id][piece.dir], (x, y))
             draw_border()
             if self.board.marks[i][j] and self.marks_enabled:
                 textsurface = self.font.render(str(self.board.marks[i][j]), False, (255, 255, 255))
