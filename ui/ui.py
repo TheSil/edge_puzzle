@@ -1,6 +1,7 @@
 import pygame
 
-GRAY = (192, 192, 192)
+GRAY = (120, 120, 120)#(192, 192, 192)
+EMPTY_GRAY = (192, 192, 192)#(120, 120, 120)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
@@ -77,7 +78,7 @@ class BoardUi:
 
         # empty field
         self.empty_img = pygame.Surface((self.piece_width, self.piece_width))
-        self.empty_img.fill(GRAY)
+        self.empty_img.fill(EMPTY_GRAY)
 
         pygame.display.update()
         pygame.display.flip()
