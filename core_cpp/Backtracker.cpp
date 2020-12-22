@@ -273,6 +273,10 @@ bool Backtracker::Step()
     case State::SEARCHING:
     {
         if (unvisited.empty()) {
+            for (auto& callback : on_solve) {
+                callback->call(board);
+            }
+
             if (find_all) {
                 counter += 1;
                 printf("%i-th solution found\n", counter);
@@ -651,4 +655,9 @@ int Backtracker::GetCounter()
 Stats& Backtracker::GetStats()
 {
     return stats;
+}
+
+void Backtracker::RegisterOnSolve(CallbackOnSolve* callback)
+{
+    on_solve.push_back(callback);
 }

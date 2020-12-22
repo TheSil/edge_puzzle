@@ -72,6 +72,12 @@ private:
 
 };
 
+class CallbackOnSolve {
+public:
+    virtual void call(Board& board) = 0;
+
+};
+
 class Backtracker {
 public:
     Backtracker(Board& board,
@@ -92,6 +98,8 @@ public:
     int GetCounter();
 
     Stats& GetStats();
+
+    void RegisterOnSolve(CallbackOnSolve* callback);
 
 private:
     enum class State {
@@ -125,6 +133,8 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
+
+    std::vector< CallbackOnSolve* > on_solve;
 
     Stats stats;
 };

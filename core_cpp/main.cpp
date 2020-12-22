@@ -7,6 +7,24 @@
 #include <time.h>
 #include <Windows.h>
 
+class Solved : public edge::backtracker::CallbackOnSolve {
+public:
+    Solved(const std::string& prefix) : prefix(prefix)
+    {
+    }
+    
+    void call(edge::Board& board)
+    {
+        printf("SOLVED!\n");
+        std::stringstream ss;
+        ss << prefix << "_save_" << "solved" << ".csv";
+        board.Save(ss.str());
+    }
+
+private:
+    std::string prefix;
+};
+
 int main(int argc, char* argv[])
 {
     std::random_device rd;
@@ -54,7 +72,9 @@ int main(int argc, char* argv[])
     //}
     //pMap = &map;
 
+    Solved solved_callback(prefix);
     edge::backtracker::Backtracker backtracker(board, pMap, true);
+    backtracker.RegisterOnSolve(&solved_callback);
 
     int i = 0;
     int start = (int)time(0);
@@ -110,10 +130,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    printf("SOLVED!\n");
-    std::stringstream ss;
-    ss << prefix << "_save_" << "solved" << ".csv";
-    board.Save(ss.str());
 #endif
 
 #if 0 // swapper
