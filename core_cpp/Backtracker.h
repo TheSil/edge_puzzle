@@ -78,6 +78,30 @@ public:
 
 };
 
+#define ABS(x) ((x < 0) ? (-x) : (x))
+
+class ColorAxisCounts
+{
+
+public:
+    void Init(const PuzzleDef* def);
+
+    void Place(int k0, int k1, int k2, int k3);
+
+    void Unplace(int k0, int k1, int k2, int k3);
+
+    bool CanBeFinished(int k);
+
+private:
+
+    void InitColor(int k);
+
+    std::vector<int> colors_horizontal;
+    std::vector<int> colors_vertical;
+    std::vector<int> colors_available;
+
+};
+
 class Backtracker {
 public:
     Backtracker(Board& board,
@@ -137,6 +161,7 @@ private:
     std::vector< CallbackOnSolve* > on_solve;
 
     Stats stats;
+    ColorAxisCounts rotChecker;
 };
 
 }

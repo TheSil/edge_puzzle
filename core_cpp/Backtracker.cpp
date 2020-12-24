@@ -183,9 +183,9 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 {
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
-            if (!pieces_map || pieces_map->find(std::pair<int,int>(x,y)) != pieces_map->end())
-            unvisited.insert(board.GetLocation(x, y));
-
+            if (!pieces_map || pieces_map->find(std::pair<int, int>(x, y)) != pieces_map->end()) {
+                unvisited.insert(board.GetLocation(x, y));
+            }
         }
     }
 
@@ -215,11 +215,16 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     stats.Init(board);
+    rotChecker.Init(board.GetPuzzleDef());
 
     // hints
     for (auto& hint : board.GetPuzzleDef()->GetHints()) {
         int dir = (hint.dir != -1) ? hint.dir : 0;
         board.PutPiece(hint.id, hint.x, hint.y, dir);
+        rotChecker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
+            board.GetLocation(hint.x, hint.y)->ref->GetPattern(1), 
+            board.GetLocation(hint.x, hint.y)->ref->GetPattern(2), 
+            board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
 
         std::vector< std::shared_ptr<PieceRef> > to_erase;
 
@@ -262,8 +267,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     board.AdjustDirBorder();
-
-
 }
 
 bool Backtracker::Step()
@@ -344,6 +347,17 @@ bool Backtracker::Step()
         selected_piece_ref = max_ref;
 
         Place(selected_loc, selected_piece_ref);
+
+        // if inconsistent rotations, backtrack...
+        if (!rotChecker.CanBeFinished(selected_piece_ref->GetPattern(0)) ||
+            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(1)) ||
+            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(2)) ||
+            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(3)) ) {
+            LDEBUG("Inconsistent rotation, initating backtrack...\n");
+            stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
+            state = State::BACKTRACKING;
+        }
+
         return true;
     }
     break;
@@ -589,9 +603,15 @@ bool Backtracker::CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 
 void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 {
-    LDEBUG("Placing %i at (%i, %i) dir=%i stack_size=%i\n",
-        ref->GetId(), loc->x, loc->y, ref->GetDir(), static_cast<int>(visited.size()) + 1);
+    LDEBUG("Placing %i at (%i, %i) [%i, %i, %i, %i]  dir=%i stack_size=%i\n",
+        ref->GetId(), loc->x, loc->y, 
+        ref->GetPattern(0), ref->GetPattern(1), ref->GetPattern(2), ref->GetPattern(3),
+        ref->GetDir(), static_cast<int>(stack.visited.size()) + 1);
     board.PutPiece(loc, ref);
+    rotChecker.Place(ref->GetPattern(0),
+        ref->GetPattern(1),
+        ref->GetPattern(2),
+        ref->GetPattern(3));
     best_unplaced_container->erase(ref);
     switch (loc->type)
     {
@@ -626,9 +646,11 @@ bool Backtracker::Backtrack()
     // update statistics
     stats.Update(stack_pos);
 
-
-    LDEBUG("Removing %i from (%i, %i) stack_size=%i\n",
-        removing->ref->GetId(), removing->x, removing->y, static_cast<int>(visited.size()));
+    LDEBUG("Removing %i from (%i, %i) [%i, %i, %i, %i] stack_size=%i\n",
+        removing->ref->GetId(), 
+        removing->x, removing->y, 
+        removing->ref->GetPattern(0), removing->ref->GetPattern(1), removing->ref->GetPattern(2), removing->ref->GetPattern(3),
+        static_cast<int>(stack.visited.size()));
 
     stack.visited.top().forbidden[removing].insert(removing->ref);
 
@@ -644,6 +666,10 @@ bool Backtracker::Backtrack()
         unplaced_inner.insert(removing->ref);
         stats.UpdateUnplacedInner(1);
     }
+    rotChecker.Unplace(removing->ref->GetPattern(0),
+        removing->ref->GetPattern(1),
+        removing->ref->GetPattern(2),
+        removing->ref->GetPattern(3));
     board.RemovePiece(removing);
 
     return true;
@@ -662,4 +688,67 @@ Stats& Backtracker::GetStats()
 void Backtracker::RegisterOnSolve(CallbackOnSolve* callback)
 {
     on_solve.push_back(callback);
+}
+
+void ColorAxisCounts::Init(const PuzzleDef* def)
+{
+    for (auto& piece : def->GetCorners()) {
+        InitColor(piece.patterns[0]);
+        InitColor(piece.patterns[1]);
+        InitColor(piece.patterns[2]);
+        InitColor(piece.patterns[3]);
+    }
+
+    for (auto& piece : def->GetEdges()) {
+        InitColor(piece.patterns[0]);
+        InitColor(piece.patterns[1]);
+        InitColor(piece.patterns[2]);
+        InitColor(piece.patterns[3]);
+    }
+
+    for (auto& piece : def->GetInner()) {
+        InitColor(piece.patterns[0]);
+        InitColor(piece.patterns[1]);
+        InitColor(piece.patterns[2]);
+        InitColor(piece.patterns[3]);
+    }
+}
+
+void ColorAxisCounts::Place(int k0, int k1, int k2, int k3)
+{
+    colors_horizontal[k0] += 1;
+    colors_horizontal[k2] -= 1;
+    colors_vertical[k1] += 1;
+    colors_vertical[k3] -= 1;
+    colors_available[k0] -= 1;
+    colors_available[k1] -= 1;
+    colors_available[k2] -= 1;
+    colors_available[k3] -= 1;
+}
+
+void ColorAxisCounts::Unplace(int k0, int k1, int k2, int k3)
+{
+    colors_available[k0] += 1;
+    colors_available[k1] += 1;
+    colors_available[k2] += 1;
+    colors_available[k3] += 1;
+    colors_horizontal[k0] -= 1;
+    colors_horizontal[k2] += 1;
+    colors_vertical[k1] -= 1;
+    colors_vertical[k3] += 1;
+}
+
+bool ColorAxisCounts::CanBeFinished(int k)
+{
+    return colors_available[k] >= ABS(colors_horizontal[k]) + ABS(colors_vertical[k]);
+}
+
+void ColorAxisCounts::InitColor(int k)
+{
+    if (k >= colors_available.size()) {
+        colors_available.resize(k + 1);
+        colors_horizontal.resize(k + 1);
+        colors_vertical.resize(k + 1);
+    }
+    colors_available[k] += 1;
 }

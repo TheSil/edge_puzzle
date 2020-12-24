@@ -9,7 +9,7 @@
 
 class Solved : public edge::backtracker::CallbackOnSolve {
 public:
-    Solved(const std::string& prefix) : prefix(prefix)
+    Solved(const std::string& prefix) : prefix(prefix), counter(0)
     {
     }
     
@@ -17,12 +17,13 @@ public:
     {
         printf("SOLVED!\n");
         std::stringstream ss;
-        ss << prefix << "_save_" << "solved" << ".csv";
+        ss << prefix << "_save_" << "solved_" << ++counter << ".csv";
         board.Save(ss.str());
     }
 
 private:
     std::string prefix;
+    int counter;
 };
 
 int main(int argc, char* argv[])
@@ -59,7 +60,7 @@ int main(int argc, char* argv[])
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
-#if 0 // BACKTRACKER
+#if 1 // BACKTRACKER
 
     std::set<std::pair<int, int>>* pMap = nullptr;
     //tested fields map
@@ -132,7 +133,7 @@ int main(int argc, char* argv[])
 
 #endif
 
-#if 1 // swapper
+#if 0 // swapper
 
 
     while (true)
