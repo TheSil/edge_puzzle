@@ -7,6 +7,37 @@
 #include <time.h>
 #include <Windows.h>
 
+class NewBest : public edge::backtracker::CallbackOnSolve {
+public:
+    NewBest(const std::string& prefix) : prefix(prefix), counter(0)
+    {
+    }
+
+    void call(edge::Board& board)
+    {
+        int score = board.GetScore();
+        printf("New best backstack position reached, score: %i\n", score);
+        if (score > 330/*420*/) {
+            std::stringstream ss;
+            try {
+                remove(last_save.c_str());
+            }
+            catch (...) {
+
+            }
+            ss << prefix << "_backtracker_save_" << score << ".csv";
+            last_save = ss.str();
+            board.Save(last_save);
+        }
+
+    }
+
+private:
+    std::string prefix;
+    int counter;
+    std::string last_save;
+};
+
 class Solved : public edge::backtracker::CallbackOnSolve {
 public:
     Solved(const std::string& prefix) : prefix(prefix), counter(0)
@@ -78,36 +109,19 @@ int main(int argc, char* argv[])
     //pMap = &map;
 
     Solved solved_callback(prefix);
+    NewBest newbest_callback(prefix);
     edge::backtracker::Backtracker backtracker(board, pMap, true);
     backtracker.RegisterOnSolve(&solved_callback);
+    backtracker.RegisterOnNewBest(&newbest_callback);
 
     int i = 0;
     int start = (int)time(0);
     int start_absolute = start;
     int score = 0;
-    int max_score = 0;
     int prev_counter = 0;
+    int max_score = 0;
     printf("score: %i\n", score);
-    std::string last_save = "";
     while (backtracker.Step()) {
-
-        score = board.GetScore();
-        if (score > max_score) {
-            max_score = score;
-            printf("Reached score: %i\n", max_score);
-            if (score > 330/*420*/) {
-                std::stringstream ss;
-                try {
-                    remove(last_save.c_str());
-                }
-                catch (...) {
-
-                }
-                ss << prefix << "_backtracker_save_" << score << ".csv";
-                last_save = ss.str();
-                board.Save(last_save);
-            }
-        }
 
         i += 1;
         //if (i % 5 == 0) {
@@ -126,6 +140,10 @@ int main(int argc, char* argv[])
             backtracker.GetStats().GetExploredRatio().PrintExp(explRatio);
             backtracker.GetStats().GetExploredMax().PrintExp(explMax);
 
+            score = board.GetScore();
+            if (score > max_score) {
+                max_score = score;
+            }
             printf("max_score: %i, curr_score: %i, iters: %i, "
                 "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n", 
                 max_score, score, i, explAbsLast.c_str(), explAbs.c_str(), explRatio.c_str(), explMax.c_str());

@@ -173,6 +173,8 @@ public:
 
     void RegisterOnSolve(CallbackOnSolve* callback);
 
+    void RegisterOnNewBest(CallbackOnSolve* callback);
+
 private:
     enum class State {
         SEARCHING = 0,
@@ -188,6 +190,7 @@ private:
     int best_score;
     int counter;
     int finalizing_threshold;
+    int highest_stack_pos;
 
     std::set<Board::Loc*> unvisited;
     bool find_all;
@@ -200,6 +203,7 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
 
     std::vector< CallbackOnSolve* > on_solve;
+    std::vector< CallbackOnSolve* > on_new_best;
 
     Stats stats;
     ColorAxisCounts rotChecker;

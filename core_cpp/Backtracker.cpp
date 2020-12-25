@@ -185,7 +185,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     : board(board), best_score(-1),
     find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
-    constraint_reducing(false)
+    constraint_reducing(false), highest_stack_pos(0)
 {
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
@@ -280,6 +280,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         stack.visited.push(Stack::LevelInfo(loc));
     }
 
+    highest_stack_pos = stack.visited.size();
     board.AdjustDirBorder();
 }
 
@@ -661,6 +662,13 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
 
     unvisited.erase(loc);
     stack.visited.push(loc);
+    if (stack.visited.size() > highest_stack_pos) {
+        highest_stack_pos = stack.visited.size();
+
+        for (auto& callback : on_new_best) {
+            callback->call(board);
+        }
+    }        
 }
 
 bool Backtracker::Backtrack()
@@ -719,6 +727,11 @@ Stats& Backtracker::GetStats()
 void Backtracker::RegisterOnSolve(CallbackOnSolve* callback)
 {
     on_solve.push_back(callback);
+}
+
+void Backtracker::RegisterOnNewBest(CallbackOnSolve* callback)
+{
+    on_new_best.push_back(callback);
 }
 
 void ColorAxisCounts::Init(const PuzzleDef* def)
