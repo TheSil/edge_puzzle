@@ -130,7 +130,7 @@ void Board::Save(const std::string& filename)
 {
     std::ofstream file(filename);
     for (int x = 0; x < def->GetHeight(); ++x) {
-        for (int y = 0; y < def->GetHeight(); ++y) {
+        for (int y = 0; y < def->GetWidth(); ++y) {
             if (state.board[x][y].ref) {
                 file << x << "," 
                     << y << "," 
