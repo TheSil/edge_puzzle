@@ -71,7 +71,8 @@ void Stats::Update(int stack_pos)
     }
 }
 
-void Stats::PrintExploredAbs(std::string& val)
+
+MpfWrapper Stats::GetExploredAbs()
 {
     // sum 
     mpz_t sum;
@@ -84,15 +85,16 @@ void Stats::PrintExploredAbs(std::string& val)
     mpf_t tmp_float;
     mpf_init(tmp_float);
     mpf_set_z(tmp_float, sum);
-    char buf[128];
-    gmp_sprintf(buf, "%.2FE", tmp_float);
-    val = buf;
+
+    MpfWrapper ret(tmp_float);
 
     mpz_clear(sum);
     mpf_clear(tmp_float);
+
+    return ret;
 }
 
-void Stats::PrintExploredAbsLast(std::string& val)
+MpfWrapper Stats::GetExploredAbsLast()
 {
     // sum 
     mpz_t sum;
@@ -113,28 +115,29 @@ void Stats::PrintExploredAbsLast(std::string& val)
     mpf_t tmp_float;
     mpf_init(tmp_float);
     mpf_set_z(tmp_float, diff);
-    char buf[128];
-    gmp_sprintf(buf, "%.2FE", tmp_float);
-    val = buf;
+
+    MpfWrapper ret(tmp_float);
 
     mpz_clear(diff);
     mpf_clear(tmp_float);
+
+    return ret;
 }
 
-void Stats::PrintExploredMax(std::string& val)
+MpfWrapper Stats::GetExploredMax()
 {
     mpf_t tmp_float;
     mpf_init(tmp_float);
     mpf_set_z(tmp_float, explored_max);
 
-    char buf[128];
-    gmp_sprintf(buf, "%.2FE", tmp_float);
-    val = buf;
+    MpfWrapper ret(tmp_float);
 
     mpf_clear(tmp_float);
+
+    return ret;
 }
 
-void Stats::PrintExploredRatio(std::string& val)
+MpfWrapper Stats::GetExploredRatio()
 {
     // sum 
     mpz_t sum;
@@ -150,13 +153,17 @@ void Stats::PrintExploredRatio(std::string& val)
     mpf_init(tmp_float2);
     mpf_set_z(tmp_float2, explored_max);
     mpf_div(tmp_float1, tmp_float1, tmp_float2);
-    char buf[128];
-    gmp_sprintf(buf, "%.2FE", tmp_float1);
-    val = buf;
+    //char buf[128];
+    //gmp_sprintf(buf, "%.2FE", tmp_float1);
+    //val = buf;
+
+    MpfWrapper ret(tmp_float1);
 
     mpf_clear(tmp_float1);
     mpf_clear(tmp_float2);
     mpz_clear(sum);
+
+    return ret;
 }
 
 void Stats::UpdateUnplacedCorners(int amount)

@@ -40,6 +40,49 @@ private:
 
 };
 
+class MpfWrapper {
+public:
+    MpfWrapper(mpf_ptr other)
+    {
+        mpf_init(val);
+        mpf_set(val, other);
+    }
+
+    MpfWrapper(const MpfWrapper& other)
+    {
+        mpf_init(val);
+        mpf_set(val, other.val);
+    }
+
+    MpfWrapper& operator=(const MpfWrapper& other)
+    {
+        if (this != &other)
+        {
+            mpf_init(val);
+            mpf_set(val, other.val);
+        }
+        return *this;
+    }
+
+    ~MpfWrapper()
+    {
+        mpf_clear(val);
+    }
+
+    void PrintExp(std::string& out)
+    {
+        char buf[128];
+        gmp_sprintf(buf, "%.2FE", val);
+        out = buf;
+    }
+
+private:
+    mpf_t val;
+
+};
+
+
+
 class Stats {
 public:
 
@@ -47,13 +90,13 @@ public:
 
     void Update(int stack_pos);
 
-    void PrintExploredAbs(std::string& val);
+    MpfWrapper GetExploredAbs();
 
-    void PrintExploredAbsLast(std::string& val);
+    MpfWrapper GetExploredAbsLast();
 
-    void PrintExploredMax(std::string& val);
+    MpfWrapper GetExploredMax();
 
-    void PrintExploredRatio(std::string& val);
+    MpfWrapper GetExploredRatio();
 
     void UpdateUnplacedCorners(int amount);
 

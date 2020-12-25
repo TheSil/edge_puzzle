@@ -117,10 +117,10 @@ int main(int argc, char* argv[])
         int now = (int)time(0);
         if (now - start >= 1) {
             std::string explAbsLast, explAbs, explMax, explRatio;
-            backtracker.GetStats().PrintExploredAbsLast(explAbsLast);
-            backtracker.GetStats().PrintExploredAbs(explAbs);
-            backtracker.GetStats().PrintExploredRatio(explRatio);
-            backtracker.GetStats().PrintExploredMax(explMax);
+            backtracker.GetStats().GetExploredAbsLast().PrintExp(explAbsLast);
+            backtracker.GetStats().GetExploredAbs().PrintExp(explAbs);
+            backtracker.GetStats().GetExploredRatio().PrintExp(explRatio);
+            backtracker.GetStats().GetExploredMax().PrintExp(explMax);
 
             printf("max_score: %i, curr_score: %i, iters: %i, "
                 "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n", 
@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
 
     printf("finished in %i sec\n", (int)time(0) - start_absolute);
     std::string explAbsLast, explAbs, explMax, explRatio;
-    backtracker.GetStats().PrintExploredAbsLast(explAbsLast);
-    backtracker.GetStats().PrintExploredAbs(explAbs);
-    backtracker.GetStats().PrintExploredRatio(explRatio);
-    backtracker.GetStats().PrintExploredMax(explMax);
+    backtracker.GetStats().GetExploredAbsLast().PrintExp(explAbsLast);
+    backtracker.GetStats().GetExploredAbs().PrintExp(explAbs);
+    backtracker.GetStats().GetExploredRatio().PrintExp(explRatio);
+    backtracker.GetStats().GetExploredMax().PrintExp(explMax);
 
     printf("max_score: %i, curr_score: %i, iters: %i, "
         "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n",
