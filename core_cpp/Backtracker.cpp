@@ -182,7 +182,7 @@ void Stats::UpdateUnplacedInner(int amount)
 }
 
 Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
-    : board(board), best_score(-1),
+    : board(board),
     find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false), highest_stack_pos(0)
@@ -280,7 +280,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         stack.visited.push(Stack::LevelInfo(loc));
     }
 
-    highest_stack_pos = stack.visited.size();
+    highest_stack_pos = static_cast<int>(stack.visited.size());
     board.AdjustDirBorder();
 }
 
@@ -292,7 +292,7 @@ bool Backtracker::Step()
     {
         if (unvisited.empty()) {
             for (auto& callback : on_solve) {
-                callback->call(board);
+                callback->Call(board);
             }
 
             if (find_all) {
@@ -311,7 +311,7 @@ bool Backtracker::Step()
             std::shared_ptr<PieceRef> > > > > feasible_pieces;
         std::vector<Board::Loc*> best_feasible_locations;
         std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
-        CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container);
+        int best_score = CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container);
 
         if (best_score <= 0) {
             // impossible to place anything here... backtrack
@@ -403,7 +403,7 @@ bool Backtracker::Step()
         std::vector<Board::Loc*> best_feasible_locations;
         std::set< std::shared_ptr<PieceRef> >* best_unplaced_container = nullptr;
 
-        CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container, true);
+        int best_score = CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container, true);
         if (best_score == -1) {
             state = State::BACKTRACKING;
         }
@@ -444,14 +444,14 @@ bool Backtracker::Step()
     return true;
 }
 
-void Backtracker::CheckFeasible(std::vector<std::vector<
+int Backtracker::CheckFeasible(std::vector<std::vector<
     std::unique_ptr< std::vector<
     std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
     std::vector<Board::Loc*>& best_feasible_locations,
     std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
     bool ignore_impossible)
 {
-    best_score = -1;
+    int best_score = -1;
     best_unplaced_container = nullptr;
 
     feasible_pieces.clear();
@@ -549,6 +549,8 @@ void Backtracker::CheckFeasible(std::vector<std::vector<
             break;
         }
     }
+
+    return best_score;
 }
 
 bool Backtracker::CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
@@ -663,10 +665,10 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
     unvisited.erase(loc);
     stack.visited.push(loc);
     if (stack.visited.size() > highest_stack_pos) {
-        highest_stack_pos = stack.visited.size();
+        highest_stack_pos = static_cast<int>(stack.visited.size());
 
         for (auto& callback : on_new_best) {
-            callback->call(board);
+            callback->Call(board);
         }
     }        
 }

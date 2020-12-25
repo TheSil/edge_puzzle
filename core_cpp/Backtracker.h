@@ -117,7 +117,7 @@ private:
 
 class CallbackOnSolve {
 public:
-    virtual void call(Board& board) = 0;
+    virtual void Call(Board& board) = 0;
 
 };
 
@@ -153,7 +153,7 @@ public:
 
     bool Step();
 
-    void CheckFeasible(std::vector<std::vector<
+    int CheckFeasible(std::vector<std::vector<
         std::unique_ptr< std::vector<
         std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
         std::vector<Board::Loc*>& best_feasible_locations, 
@@ -187,7 +187,6 @@ private:
     State state;
     Stack stack;
 
-    int best_score;
     int counter;
     int finalizing_threshold;
     int highest_stack_pos;
