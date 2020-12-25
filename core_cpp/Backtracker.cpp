@@ -236,7 +236,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_corners.erase(ref);
-            stats.UpdateUnplacedCorners(-1);
         }
 
         to_erase.clear();
@@ -247,7 +246,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_edges.erase(ref);
-            stats.UpdateUnplacedEdges(-1);
         }
 
         to_erase.clear();
@@ -258,10 +256,20 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         for (auto& ref : to_erase) {
             unplaced_inner.erase(ref);
-            stats.UpdateUnplacedInner(-1);
         }
 
         auto loc = board.GetLocation(hint.x, hint.y);
+
+        if (loc->type == Board::LocType::CORNER) {
+            stats.UpdateUnplacedCorners(-1);
+        }
+        else if (loc->type == Board::LocType::EDGE) {
+            stats.UpdateUnplacedEdges(-1);
+        }
+        else {
+            stats.UpdateUnplacedInner(-1);
+        }
+
         unvisited.erase(loc);
         stack.visited.push(Stack::LevelInfo(loc));
     }

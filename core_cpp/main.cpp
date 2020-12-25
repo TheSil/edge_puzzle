@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 
     int i = 0;
     int start = (int)time(0);
+    int start_absolute = start;
     int score = 0;
     int max_score = 0;
     int prev_counter = 0;
@@ -130,6 +131,17 @@ int main(int argc, char* argv[])
             start = now;
         }
     }
+
+    printf("finished in %i sec\n", (int)time(0) - start_absolute);
+    std::string explAbsLast, explAbs, explMax, explRatio;
+    backtracker.GetStats().PrintExploredAbsLast(explAbsLast);
+    backtracker.GetStats().PrintExploredAbs(explAbs);
+    backtracker.GetStats().PrintExploredRatio(explRatio);
+    backtracker.GetStats().PrintExploredMax(explMax);
+
+    printf("max_score: %i, curr_score: %i, iters: %i, "
+        "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n",
+        max_score, score, i, explAbsLast.c_str(), explAbs.c_str(), explRatio.c_str(), explMax.c_str());
 
 #endif
 
