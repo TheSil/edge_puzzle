@@ -402,7 +402,7 @@ bool Backtracker::Step()
             // we should now unwrap beyond hint piece if there is any 
             // this forces all pieces beyound it to be counted properly
             if (stack.visited.size() > 1) {
-                stats.Update(stack.visited.size() - 1);
+                stats.Update(static_cast<int>(stack.visited.size()) - 1);
             }
 
             state = State::FINISHED;
