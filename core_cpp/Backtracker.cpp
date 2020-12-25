@@ -24,14 +24,36 @@ void Stats::Init(Board& board)
         mpz_set_ui(val, 0);
     }
 
+    int placeable_corners = 4;
+    int placeable_edges = static_cast<int>(board.GetPuzzleDef()->GetEdges().size());
+    int placeable_inners = static_cast<int>(board.GetPuzzleDef()->GetInner().size());
+
+    // discount hint pieces as they are not placeable
+    for (auto& piece : board.GetPuzzleDef()->GetHints()) {
+        switch (board.GetLocation(piece.x, piece.y)->type)
+        {
+        case Board::LocType::CORNER:
+            placeable_corners -= 1;
+            break;
+        case Board::LocType::EDGE:
+            placeable_edges -= 1;
+            break;
+        case Board::LocType::INNER:
+            placeable_inners -= 1;
+            break;
+        default:
+            break;
+        }
+    }    
+
     mpz_init(explored_max);
-    mpz_set(explored_max, factorial[4]);
-    mpz_mul(explored_max, explored_max, factorial[board.GetPuzzleDef()->GetEdges().size()]);
-    mpz_mul(explored_max, explored_max, factorial[board.GetPuzzleDef()->GetInner().size()]);
+    mpz_set(explored_max, factorial[placeable_corners]);
+    mpz_mul(explored_max, explored_max, factorial[placeable_edges]);
+    mpz_mul(explored_max, explored_max, factorial[placeable_inners]);
     mpz_t power;
     mpz_init(power);
     mpz_set_ui(power, 4);
-    mpz_pow_ui(power, power, board.GetPuzzleDef()->GetInner().size());
+    mpz_pow_ui(power, power, placeable_inners);
     mpz_mul(explored_max, explored_max, power);
     mpz_clear(power);
 
@@ -39,9 +61,9 @@ void Stats::Init(Board& board)
     mpz_set_ui(absLast, 0);
 
     // unplaced count, needed for explored statistics 
-    unplaced_corners_ids_count = 4;
-    unplaced_edges_ids_count = static_cast<int>(board.GetPuzzleDef()->GetEdges().size());
-    unplaced_inner_ids_count = static_cast<int>(board.GetPuzzleDef()->GetInner().size());
+    unplaced_corners_ids_count = placeable_corners;
+    unplaced_edges_ids_count = static_cast<int>(placeable_edges);
+    unplaced_inner_ids_count = static_cast<int>(placeable_inners);
 }
 
 void Stats::Update(int stack_pos)
@@ -70,7 +92,6 @@ void Stats::Update(int stack_pos)
         mpz_set_ui(explored[stack_pos], 0);
     }
 }
-
 
 MpfWrapper Stats::GetExploredAbs()
 {
@@ -153,9 +174,6 @@ MpfWrapper Stats::GetExploredRatio()
     mpf_init(tmp_float2);
     mpf_set_z(tmp_float2, explored_max);
     mpf_div(tmp_float1, tmp_float1, tmp_float2);
-    //char buf[128];
-    //gmp_sprintf(buf, "%.2FE", tmp_float1);
-    //val = buf;
 
     MpfWrapper ret(tmp_float1);
 
@@ -265,19 +283,9 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
 
         auto loc = board.GetLocation(hint.x, hint.y);
-
-        if (loc->type == Board::LocType::CORNER) {
-            stats.UpdateUnplacedCorners(-1);
-        }
-        else if (loc->type == Board::LocType::EDGE) {
-            stats.UpdateUnplacedEdges(-1);
-        }
-        else {
-            stats.UpdateUnplacedInner(-1);
-        }
-
         unvisited.erase(loc);
         stack.visited.push(Stack::LevelInfo(loc));
+        stack.start_size++;
     }
 
     highest_stack_pos = static_cast<int>(stack.visited.size());
@@ -391,6 +399,12 @@ bool Backtracker::Step()
             }
         }
         else {
+            // we should now unwrap beyond hint piece if there is any 
+            // this forces all pieces beyound it to be counted properly
+            if (stack.visited.size() > 1) {
+                stats.Update(stack.visited.size() - 1);
+            }
+
             state = State::FINISHED;
         }
     }

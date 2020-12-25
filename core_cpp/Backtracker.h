@@ -24,17 +24,18 @@ public:
     };
 
     bool IsEmpty() {
-        // empty == only root
-        return visited.size() == 1;
+        // empty == only root, plus possible hints
+        return visited.size() == start_size;
     }
 
-    Stack() : backtrack_to(0)
+    Stack() : backtrack_to(0), start_size(1)
     {
         visited.push(LevelInfo(nullptr)); // root
     }
 
     std::stack<LevelInfo> visited;
     int backtrack_to;
+    int start_size;
 
 private:
 
