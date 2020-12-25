@@ -153,7 +153,12 @@ public:
 
     bool Step();
 
-    void CheckFeasible(bool ignore_impossible = false);
+    void CheckFeasible(std::vector<std::vector<
+        std::unique_ptr< std::vector<
+        std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
+        std::vector<Board::Loc*>& best_feasible_locations, 
+        std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
+        bool ignore_impossible = false);
 
     bool CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
 
@@ -189,13 +194,6 @@ private:
     bool enable_finalizing;
     bool connecting;
     bool constraint_reducing;
-
-    std::vector<Board::Loc*> best_feasible_locations;
-    std::vector<std::vector<
-        std::unique_ptr< std::vector<
-        std::shared_ptr<PieceRef> > > > > feasible_pieces;
-
-    std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
 
     std::set< std::shared_ptr<PieceRef> > unplaced_corners;
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;

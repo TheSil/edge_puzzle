@@ -185,8 +185,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     : board(board), best_score(-1),
     find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
-    constraint_reducing(false),
-    best_unplaced_container(nullptr)
+    constraint_reducing(false)
 {
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
@@ -306,7 +305,12 @@ bool Backtracker::Step()
             }
         }
 
-        CheckFeasible();
+        std::vector<std::vector<
+            std::unique_ptr< std::vector<
+            std::shared_ptr<PieceRef> > > > > feasible_pieces;
+        std::vector<Board::Loc*> best_feasible_locations;
+        std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
+        CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container);
 
         if (best_score <= 0) {
             // impossible to place anything here... backtrack
@@ -362,6 +366,7 @@ bool Backtracker::Step()
         selected_piece_ref = max_ref;
 
         Place(selected_loc, selected_piece_ref);
+        best_unplaced_container->erase(selected_piece_ref);
 
         // if inconsistent rotations, backtrack...
         if (!rotChecker.CanBeFinished(selected_piece_ref->GetPattern(0)) ||
@@ -391,7 +396,13 @@ bool Backtracker::Step()
     break;
     case State::FINALIZING:
     {
-        CheckFeasible(true);
+        std::vector<std::vector<
+            std::unique_ptr< std::vector<
+            std::shared_ptr<PieceRef> > > > > feasible_pieces;
+        std::vector<Board::Loc*> best_feasible_locations;
+        std::set< std::shared_ptr<PieceRef> >* best_unplaced_container = nullptr;
+
+        CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container, true);
         if (best_score == -1) {
             state = State::BACKTRACKING;
         }
@@ -416,6 +427,7 @@ bool Backtracker::Step()
                 }
             }
             Place(best_location, best_piece_ref);
+            best_unplaced_container->erase(best_piece_ref);
         }
     }
     break;
@@ -431,7 +443,12 @@ bool Backtracker::Step()
     return true;
 }
 
-void Backtracker::CheckFeasible(bool ignore_impossible)
+void Backtracker::CheckFeasible(std::vector<std::vector<
+    std::unique_ptr< std::vector<
+    std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
+    std::vector<Board::Loc*>& best_feasible_locations,
+    std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
+    bool ignore_impossible)
 {
     best_score = -1;
     best_unplaced_container = nullptr;
@@ -627,7 +644,6 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
         ref->GetPattern(1),
         ref->GetPattern(2),
         ref->GetPattern(3));
-    best_unplaced_container->erase(ref);
     switch (loc->type)
     {
     case Board::LocType::CORNER:
