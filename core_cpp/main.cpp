@@ -16,9 +16,13 @@ public:
     void call(edge::Board& board)
     {
         printf("SOLVED!\n");
-        std::stringstream ss;
-        ss << prefix << "_save_" << "solved_" << ++counter << ".csv";
-        board.Save(ss.str());
+        if (counter < 20)
+        {// safety mechanism, do not save more than certain number of solutions...
+            std::stringstream ss;
+            ss << prefix << "_save_" << "solved_" << ++counter << ".csv";
+            board.Save(ss.str());
+        }
+
     }
 
 private:
