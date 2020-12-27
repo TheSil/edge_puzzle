@@ -1,5 +1,6 @@
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 #include "Backtracker.h"
 
 using namespace edge::backtracker;
@@ -199,7 +200,8 @@ void Stats::UpdateUnplacedInner(int amount)
     unplaced_inner_ids_count += amount;
 }
 
-Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all)
+Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all,
+    const std::string& rotations_file)
     : board(board),
     find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90), enable_finalizing(false),
@@ -217,24 +219,59 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         find_all = true;
     }
 
+    std::map<int, int> rotations;
+    if (!rotations_file.empty()) {
+        std::ifstream file(rotations_file);
+        std::string line;
+        std::vector<int> vals;
+
+        while (getline(file, line)) {
+            vals.clear();
+            ParseNumberLine(line, vals);
+            vals.resize(2, 0);
+            rotations[vals[0]] = vals[1];
+        }
+    }
+
     for (auto& piece : board.GetPuzzleDef()->GetCorners()) {
-        for (int dir = 0; dir < 4; ++dir) {
+        if (!rotations.empty())
+        {
             unplaced_corners.insert(
-                std::make_shared<PieceRef>(piece, dir));
+                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+        }
+        else {
+            for (int dir = 0; dir < 4; ++dir) {
+                unplaced_corners.insert(
+                    std::make_shared<PieceRef>(piece, dir));
+            }
         }
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetEdges()) {
-        for (int dir = 0; dir < 4; ++dir) {
+        if (!rotations.empty())
+        {
             unplaced_edges.insert(
-                std::make_shared<PieceRef>(piece, dir));
+                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+        }
+        else {
+            for (int dir = 0; dir < 4; ++dir) {
+                unplaced_edges.insert(
+                    std::make_shared<PieceRef>(piece, dir));
+            }
         }
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetInner()) {
-        for (int dir = 0; dir < 4; ++dir) {
+        if (!rotations.empty())
+        {
             unplaced_inner.insert(
-                std::make_shared<PieceRef>(piece, dir));
+                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+        }
+        else {
+            for (int dir = 0; dir < 4; ++dir) {
+                unplaced_inner.insert(
+                    std::make_shared<PieceRef>(piece, dir));
+            }
         }
     }
 
@@ -431,6 +468,7 @@ bool Backtracker::Step()
                     count += (loc->neighbours[i]) ? 1 : 0;
                 }
                 if (count > most_neighbours) {
+                //if (count < most_neighbours || most_neighbours == -1) {
                     most_neighbours = count;
                     // TBD: here it seems python gets accidentaly random elements instead?
                     best_piece_ref = *feasible_pieces[loc->x][loc->y]->begin();
@@ -547,6 +585,13 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
         }
 
         int score = static_cast<int>(feasible_pieces[loc->x][loc->y]->size());
+
+        if (score == 0) {
+            // impossible to place anything here...
+            best_score = 0;
+            break;
+        }
+
         if (score == best_score && best_unplaced_container == possible) {
             best_feasible_locations.push_back(loc);
         }

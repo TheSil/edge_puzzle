@@ -150,14 +150,25 @@ class Backtracker {
 public:
     Backtracker(Board& board,
         std::set<std::pair<int, int>>* pieces_map = nullptr,
-        bool find_all = false);
+        bool find_all = false,
+        const std::string& rotations_file = "");
 
     bool Step();
 
+    Stats& GetStats();
+
+    void RegisterOnSolve(CallbackOnSolve* callback);
+
+    void RegisterOnNewBest(CallbackOnSolve* callback);
+
+    // debug
+    int GetCounter();
+
+private:
     int CheckFeasible(std::vector<std::vector<
         std::unique_ptr< std::vector<
-        std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
-        std::vector<Board::Loc*>& best_feasible_locations, 
+        std::shared_ptr<PieceRef> > > > >& feasible_pieces,
+        std::vector<Board::Loc*>& best_feasible_locations,
         std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
         bool ignore_impossible = false);
 
@@ -166,15 +177,6 @@ public:
     void Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
 
     bool Backtrack();
-
-    // debug
-    int GetCounter();
-
-    Stats& GetStats();
-
-    void RegisterOnSolve(CallbackOnSolve* callback);
-
-    void RegisterOnNewBest(CallbackOnSolve* callback);
 
 private:
     enum class State {

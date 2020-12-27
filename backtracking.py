@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--disable_reducing', action='store_true', required=False, default=False,
                         help='Reducing constraints')
     parser.add_argument('-stats', type=str, required=False, default=None, help='Collocation stats file')
+    parser.add_argument('-rotations', type=str, required=False, default=None, help='Rotations file')
     args = parser.parse_args()
 
     puzzle_def = PuzzleDefinition()
@@ -39,7 +40,8 @@ if __name__ == '__main__':
                               constraint_reducing=(not args.disable_reducing),
                               connecting=True,
                               grid_file=args.stats,
-                              find_all=True)
+                              find_all=True,
+                              rotations_file=args.rotations)
     start = time.time()
     running_min = 0
     running_sec = 0

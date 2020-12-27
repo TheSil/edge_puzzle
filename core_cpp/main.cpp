@@ -96,6 +96,11 @@ int main(int argc, char* argv[])
         hints_file = argv[2];
     }
 
+    std::string rotations_file = "";
+    if (argc > 3) {
+        rotations_file = argv[3];
+    }
+
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
@@ -114,7 +119,7 @@ int main(int argc, char* argv[])
 
     Solved solved_callback(prefix);
     NewBest newbest_callback(prefix);
-    edge::backtracker::Backtracker backtracker(board, pMap, true);
+    edge::backtracker::Backtracker backtracker(board, pMap, true, rotations_file);
     backtracker.RegisterOnSolve(&solved_callback);
     backtracker.RegisterOnNewBest(&newbest_callback);
 

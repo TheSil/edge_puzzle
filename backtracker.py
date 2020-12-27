@@ -76,7 +76,8 @@ class Backtracker:
                  connecting=False,
                  pieces_map=None,
                  find_all=False,
-                 grid_file=None):
+                 grid_file=None,
+                 rotations_file=None):
         # pre-calculated factorials
         self.fact = [math.factorial(i) for i in range(4 * 256 + 1)]  # 4 times for each rotation
         self.enable_finalizing = enable_finalizing
@@ -101,21 +102,39 @@ class Backtracker:
         # self.unplaced_ids = set()
         self.unplaced_corners_ids = set()
         self.unplaced_corners = set()
+
+        rotations = None
+        if rotations_file is not None:
+            rotations = {}
+            with open(rotations_file) as f:
+                for line in f.readlines():
+                    id, dir = line.split(",")
+                    rotations[int(id)] = int(dir)
+
         for piece in self.board.puzzle_def.corners:
-            for dir in range(4):
-                self.unplaced_corners.add(PieceRef(piece, dir, 0, 0))
+            if rotations is not None:
+                self.unplaced_corners.add(PieceRef(piece, rotations[piece.id], 0, 0))
+            else:
+                for dir in range(4):
+                    self.unplaced_corners.add(PieceRef(piece, dir, 0, 0))
             self.unplaced_corners_ids.add(piece.id)
         self.unplaced_edges = set()
         self.unplaced_edges_ids = set()
         for piece in self.board.puzzle_def.edges:
-            for dir in range(4):
-                self.unplaced_edges.add(PieceRef(piece, dir, 0, 0))
+            if rotations is not None:
+                self.unplaced_edges.add(PieceRef(piece, rotations[piece.id], 0, 0))
+            else:
+                for dir in range(4):
+                    self.unplaced_edges.add(PieceRef(piece, dir, 0, 0))
             self.unplaced_edges_ids.add(piece.id)
         self.unplaced_inner = set()
         self.unplaced_inner_ids = set()
         for piece in self.board.puzzle_def.inner:
-            for dir in range(4):
-                self.unplaced_inner.add(PieceRef(piece, dir, 0, 0))
+            if rotations is not None:
+                self.unplaced_inner.add(PieceRef(piece, rotations[piece.id], 0, 0))
+            else:
+                for dir in range(4):
+                    self.unplaced_inner.add(PieceRef(piece, dir, 0, 0))
             self.unplaced_inner_ids.add(piece.id)
         self.forbidden = {}
         for i in range(self.board.puzzle_def.height):
