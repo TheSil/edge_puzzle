@@ -244,38 +244,14 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
     }
 
-    for (auto& piece : board.GetPuzzleDef()->GetCorners()) {
+    for (auto& piece : board.GetPuzzleDef()->GetAll()) {
         if (!rotations.empty())
         {
-            unplaced_corners.insert(refs[piece.id][rotations[piece.id]]);
+            unplaced_pieces.insert(refs[piece.second.id][rotations[piece.second.id]]);
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_corners.insert(refs[piece.id][rotations[piece.id]]);
-            }
-        }
-    }
-
-    for (auto& piece : board.GetPuzzleDef()->GetEdges()) {
-        if (!rotations.empty())
-        {
-            unplaced_edges.insert(refs[piece.id][rotations[piece.id]]);
-        }
-        else {
-            for (int dir = 0; dir < 4; ++dir) {
-                unplaced_edges.insert(refs[piece.id][rotations[piece.id]]);
-            }
-        }
-    }
-
-    for (auto& piece : board.GetPuzzleDef()->GetInner()) {
-        if (!rotations.empty())
-        {
-            unplaced_inner.insert(refs[piece.id][rotations[piece.id]]);
-        }
-        else {
-            for (int dir = 0; dir < 4; ++dir) {
-                unplaced_inner.insert(refs[piece.id][rotations[piece.id]]);
+                unplaced_pieces.insert(refs[piece.second.id][rotations[piece.second.id]]);
             }
         }
     }
@@ -295,33 +271,13 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         std::vector< std::shared_ptr<PieceRef> > to_erase;
 
         to_erase.clear();
-        for (auto& ref : unplaced_corners) {
+        for (auto& ref : unplaced_pieces) {
             if (ref->GetId() == hint.id) {
                 to_erase.push_back(ref);
             }
         }
         for (auto& ref : to_erase) {
-            unplaced_corners.erase(ref);
-        }
-
-        to_erase.clear();
-        for (auto& ref : unplaced_edges) {
-            if (ref->GetId() == hint.id) {
-                to_erase.push_back(ref);
-            }
-        }
-        for (auto& ref : to_erase) {
-            unplaced_edges.erase(ref);
-        }
-
-        to_erase.clear();
-        for (auto& ref : unplaced_inner) {
-            if (ref->GetId() == hint.id) {
-                to_erase.push_back(ref);
-            }
-        }
-        for (auto& ref : to_erase) {
-            unplaced_inner.erase(ref);
+            unplaced_pieces.erase(ref);
         }
 
         auto loc = board.GetLocation(hint.x, hint.y);
@@ -737,15 +693,7 @@ int Backtracker::CheckFeasible(std::vector<
             continue;
         }
 
-        if (loc->type == Board::LocType::CORNER) {
-            possible = &unplaced_corners;
-        }
-        else if (loc->type == Board::LocType::EDGE) {
-            possible = &unplaced_edges;
-        }
-        else {
-            possible = &unplaced_inner;
-        }
+        possible = &unplaced_pieces;
 
         int score = static_cast<int>(feasible_pieces[height * loc->x + loc->y]->size());
 
@@ -829,16 +777,14 @@ bool Backtracker::Backtrack()
 
     stack.visited.top().forbidden[removing].insert(removing->ref);
 
+    unplaced_pieces.insert(removing->ref);
     if (removing->type == Board::LocType::CORNER) {
-        unplaced_corners.insert(removing->ref);
         stats.UpdateUnplacedCorners(1);
     }
     else if (removing->type == Board::LocType::EDGE) {
-        unplaced_edges.insert(removing->ref);
         stats.UpdateUnplacedEdges(1);
     }
     else {
-        unplaced_inner.insert(removing->ref);
         stats.UpdateUnplacedInner(1);
     }
     rotChecker.Unplace(removing->ref->GetPattern(0),
@@ -872,25 +818,11 @@ void Backtracker::RegisterOnNewBest(CallbackOnSolve* callback)
 
 void ColorAxisCounts::Init(const PuzzleDef* def)
 {
-    for (auto& piece : def->GetCorners()) {
-        InitColor(piece.patterns[0]);
-        InitColor(piece.patterns[1]);
-        InitColor(piece.patterns[2]);
-        InitColor(piece.patterns[3]);
-    }
-
-    for (auto& piece : def->GetEdges()) {
-        InitColor(piece.patterns[0]);
-        InitColor(piece.patterns[1]);
-        InitColor(piece.patterns[2]);
-        InitColor(piece.patterns[3]);
-    }
-
-    for (auto& piece : def->GetInner()) {
-        InitColor(piece.patterns[0]);
-        InitColor(piece.patterns[1]);
-        InitColor(piece.patterns[2]);
-        InitColor(piece.patterns[3]);
+    for (auto& piece : def->GetAll()) {
+        InitColor(piece.second.patterns[0]);
+        InitColor(piece.second.patterns[1]);
+        InitColor(piece.second.patterns[2]);
+        InitColor(piece.second.patterns[3]);
     }
 }
 

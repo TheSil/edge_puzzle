@@ -91,6 +91,11 @@ const std::vector<PieceDef>& PuzzleDef::GetInner() const
     return inner;
 }
 
+const std::map<int, PieceDef>& PuzzleDef::GetAll() const
+{
+    return all;
+}
+
 const std::vector<HintDef>& PuzzleDef::GetHints() const
 {
     return hints;

@@ -30,6 +30,8 @@ public:
 
     const std::vector<PieceDef>& GetInner() const;
 
+    const std::map<int, PieceDef>& GetAll() const;
+
     const std::vector<HintDef>& GetHints() const;
 
 private:

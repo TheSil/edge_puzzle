@@ -206,9 +206,7 @@ private:
     bool connecting;
     bool constraint_reducing;
 
-    std::set< std::shared_ptr<PieceRef> > unplaced_corners;
-    std::set< std::shared_ptr<PieceRef> > unplaced_edges;
-    std::set< std::shared_ptr<PieceRef> > unplaced_inner;
+    std::set< std::shared_ptr<PieceRef> > unplaced_pieces;
 
     std::unordered_map<int, std::list< std::shared_ptr<PieceRef>>> neighbour_table;
     int color_count;
