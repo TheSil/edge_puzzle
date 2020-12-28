@@ -217,12 +217,17 @@ class CircleSubtractPattern4:
         dwg.save()
 
 
-yellow = 'rgb(230,210,16)'
+#yellow = 'rgb(230,210,16)'
+yellow = 'rgb(255,255,44)'
 green = 'rgb(31,161,97)'
-darkblue = 'rgb(49,105,142)'
-lightblue = 'rgb(74,196,231)'
+#darkblue = 'rgb(49,105,142)'
+darkblue = 'rgb(36,71,115)'
+blue = 'rgb(74,196,231)'
+#lightblue = 'rgb(74,196,231)'
+lightblue = 'rgb(172,225,238)'
 pink = 'rgb(216,96,137)'
-purple = 'rgb(103,46,91)'
+#purple = 'rgb(103,46,91)'
+purple = 'rgb(99,0,132)'
 tapestry = 'rgb(163,84,105)'
 orange = 'orange'
 
@@ -235,14 +240,14 @@ RoundCrossPattern(pink, yellow).save('pattern6.svg')
 CrossPattern(purple, lightblue).save('pattern7.svg')
 PlusPattern(purple, yellow).save('pattern8.svg')
 CrossPattern(green, orange).save('pattern9.svg')
-MultiSquarePattern(lightblue, pink).save('pattern10.svg')
+MultiSquarePattern(blue, pink).save('pattern10.svg')
 SquarePattern(yellow, green).save('pattern11.svg')
 RoundCrossPattern(darkblue, orange).save('pattern12.svg')
 MultiSquarePattern(pink, yellow).save('pattern13.svg')
-StarPattern(yellow, lightblue).save('pattern14.svg')
+StarPattern(yellow, blue).save('pattern14.svg')
 RoundCrossPattern(green, pink).save('pattern15.svg')
 StarPattern(tapestry, yellow).save('pattern16.svg')
-CrossPattern(lightblue, pink).save('pattern17.svg')
+CrossPattern(blue, pink).save('pattern17.svg')
 MultiSquarePattern(yellow, darkblue).save('pattern18.svg')
 StarPattern(orange, tapestry).save('pattern19.svg')
 SquarePattern(darkblue, lightblue).save('pattern20.svg')
