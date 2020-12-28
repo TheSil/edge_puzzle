@@ -70,10 +70,13 @@ class BoardUi:
 
             for dir in range(4):
                 high_res2 = pygame.transform.rotate(high_res, 45 - dir * 90)
+
                 h = high_res2.get_height()/4
                 low_res = pygame.Surface((2 * h, 2 * h))
                 low_res.blit(high_res2, (0, 0), (h, h, 2 * h, 2 * h))
                 low_res = pygame.transform.scale(low_res, (self.piece_width, self.piece_width))
+                pygame.draw.lines(low_res, (50, 50, 50), True, [(0,0),(self.piece_width, self.piece_width)], 2)
+                pygame.draw.lines(low_res, (50, 50, 50), True, [(self.piece_width, 0), (0, self.piece_width)], 2)
                 self.piece_img[id].append(low_res)
 
         # empty field
@@ -92,7 +95,7 @@ class BoardUi:
                          (self.piece_width + x, 0 + y)]
 
         def draw_border():
-            pygame.draw.lines(self.DISPLAY, (50, 50, 50), True, border_points, 1)
+            pygame.draw.lines(self.DISPLAY, (50, 50, 50), True, border_points, 2)
 
         if piece:
             i, j = piece.i, piece.j

@@ -385,6 +385,10 @@ class Backtracker:
 
             score = len(self.feasible_pieces[i, j])
 
+            if score == 0:
+                self.best_score = 0
+                break
+
             if score == self.best_score and self.best_unplaced_container == possible:
                 self.best_feasible_locations.append((i, j))
             elif (self.best_score == -1 or score < self.best_score) \
