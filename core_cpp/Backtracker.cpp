@@ -207,8 +207,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     counter(0), finalizing_threshold(90), enable_finalizing(false),
     constraint_reducing(false), highest_stack_pos(0)
 {
-    for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
-        for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
+    height = board.GetPuzzleDef()->GetHeight();
+    width = board.GetPuzzleDef()->GetWidth();
+
+    for (int x = 0; x < height; ++x) {
+        for (int y = 0; y < width; ++y) {
             if (!pieces_map || pieces_map->find(std::pair<int, int>(x, y)) != pieces_map->end()) {
                 unvisited.insert(board.GetLocation(x, y));
             }
@@ -512,9 +515,9 @@ bool Backtracker::Step()
             }
         }
 
-        std::vector<std::vector<
+        std::vector<
             std::unique_ptr< std::vector<
-            std::shared_ptr<PieceRef> > > > > feasible_pieces;
+            std::shared_ptr<PieceRef> > > > feasible_pieces;
         std::vector<Board::Loc*> best_feasible_locations;
         std::set< std::shared_ptr<PieceRef> >* best_unplaced_container;
         int best_score = CheckFeasible(feasible_pieces, best_feasible_locations, best_unplaced_container);
@@ -547,8 +550,9 @@ bool Backtracker::Step()
         std::map<int, std::tuple<int, Board::Loc*, std::shared_ptr<PieceRef> > > counts;
         random_shuffle(best_feasible_locations.begin(), best_feasible_locations.end());
         for (auto& loc : best_feasible_locations) {
-            random_shuffle(feasible_pieces[loc->x][loc->y]->begin(), feasible_pieces[loc->x][loc->y]->end());
-            for (auto piece_ref : *feasible_pieces[loc->x][loc->y]) {
+            random_shuffle(feasible_pieces[height * loc->x + loc->y]->begin(),
+                feasible_pieces[height * loc->x + loc->y]->end());
+            for (auto piece_ref : *feasible_pieces[height * loc->x + loc->y]) {
                 int id = piece_ref->GetId();
                 std::get<0>(counts[id]) += 1;
                 std::get<1>(counts[id]) = loc;
@@ -609,9 +613,9 @@ bool Backtracker::Step()
     break;
     case State::FINALIZING:
     {
-        std::vector<std::vector<
+        std::vector<
             std::unique_ptr< std::vector<
-            std::shared_ptr<PieceRef> > > > > feasible_pieces;
+            std::shared_ptr<PieceRef> > > > feasible_pieces;
         std::vector<Board::Loc*> best_feasible_locations;
         std::set< std::shared_ptr<PieceRef> >* best_unplaced_container = nullptr;
 
@@ -632,7 +636,7 @@ bool Backtracker::Step()
                 //if (count < most_neighbours || most_neighbours == -1) {
                     most_neighbours = count;
                     // TBD: here it seems python gets accidentaly random elements instead?
-                    best_piece_ref = *feasible_pieces[loc->x][loc->y]->begin();
+                    best_piece_ref = *feasible_pieces[height * loc->x + loc->y]->begin();
                     best_location = loc;
                     if (most_neighbours == 4) {
                         break;
@@ -657,9 +661,9 @@ bool Backtracker::Step()
     return true;
 }
 
-int Backtracker::CheckFeasible(std::vector<std::vector<
+int Backtracker::CheckFeasible(std::vector<
     std::unique_ptr< std::vector<
-    std::shared_ptr<PieceRef> > > > >& feasible_pieces, 
+    std::shared_ptr<PieceRef> > > >& feasible_pieces, 
     std::vector<Board::Loc*>& best_feasible_locations,
     std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
     bool ignore_impossible)
@@ -668,10 +672,7 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
     best_unplaced_container = nullptr;
 
     feasible_pieces.clear();
-    feasible_pieces.resize(board.GetPuzzleDef()->GetHeight());
-    for (auto& row : feasible_pieces) {
-        row.resize(board.GetPuzzleDef()->GetWidth());
-    }
+    feasible_pieces.resize(height * width);
 
     std::set< std::shared_ptr<PieceRef> >* possible = nullptr;
     int any_color = color_count; // make last color encode the "ANY" matching pattern
@@ -684,12 +685,12 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
                 neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
             }
             if (neighbours == 0) {
-                feasible_pieces[loc->x][loc->y] = nullptr;
+                feasible_pieces[height * loc->x + loc->y] = nullptr;
                 continue;
             }
         }
 
-        feasible_pieces[loc->x][loc->y] = std::make_unique< std::vector<
+        feasible_pieces[height * loc->x + loc->y] = std::make_unique< std::vector<
             std::shared_ptr<PieceRef> > >();
 
         int key = EncodePatterns(!loc->neighbours[EAST] ? 0 : (loc->neighbours[EAST]->ref ? loc->neighbours[EAST]->ref->GetPattern(WEST) : any_color),
@@ -712,7 +713,7 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
                         }
                     }
                     if (!is_forbidden) {
-                        feasible_pieces[loc->x][loc->y]->push_back(piece);
+                        feasible_pieces[height * loc->x + loc->y]->push_back(piece);
                     }
                 }
 
@@ -732,7 +733,7 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
     best_feasible_locations.clear();
 
     for (auto loc : unvisited) {
-        if (!feasible_pieces[loc->x][loc->y]) {
+        if (!feasible_pieces[height * loc->x + loc->y]) {
             continue;
         }
 
@@ -746,7 +747,7 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
             possible = &unplaced_inner;
         }
 
-        int score = static_cast<int>(feasible_pieces[loc->x][loc->y]->size());
+        int score = static_cast<int>(feasible_pieces[height * loc->x + loc->y]->size());
 
         if (score == 0) {
             // impossible to place anything here...

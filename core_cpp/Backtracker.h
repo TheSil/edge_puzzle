@@ -17,7 +17,7 @@ public:
 
     struct LevelInfo {
         Board::Loc* loc;
-        std::map<Board::Loc*,
+        std::unordered_map<Board::Loc*,
             std::set< std::shared_ptr<PieceRef> > > forbidden;
 
         LevelInfo(Board::Loc* loc) : loc(loc)
@@ -167,9 +167,9 @@ public:
     int GetCounter();
 
 private:
-    int CheckFeasible(std::vector<std::vector<
+    int CheckFeasible(std::vector<
         std::unique_ptr< std::vector<
-        std::shared_ptr<PieceRef> > > > >& feasible_pieces,
+        std::shared_ptr<PieceRef> > > >& feasible_pieces,
         std::vector<Board::Loc*>& best_feasible_locations,
         std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
         bool ignore_impossible = false);
@@ -195,6 +195,10 @@ private:
     int counter;
     int finalizing_threshold;
     int highest_stack_pos;
+
+    // cached
+    int height;
+    int width;
 
     std::set<Board::Loc*> unvisited;
     bool find_all;
