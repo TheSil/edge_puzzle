@@ -219,6 +219,14 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         find_all = true;
     }
 
+    refs.resize(board.GetPuzzleDef()->GetPieceCount() + 1);
+    for (int id = 1; id < refs.size(); ++id) {
+        const auto& def = board.GetPuzzleDef()->GetPieceDef(id);
+        for (int dir = 0; dir < 4; ++dir) {
+            refs[id][dir] = std::make_shared<PieceRef>(def, dir);
+        } 
+    }
+
     std::map<int, int> rotations;
     if (!rotations_file.empty()) {
         std::ifstream file(rotations_file);
@@ -236,13 +244,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     for (auto& piece : board.GetPuzzleDef()->GetCorners()) {
         if (!rotations.empty())
         {
-            unplaced_corners.insert(
-                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+            unplaced_corners.insert(refs[piece.id][rotations[piece.id]]);
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_corners.insert(
-                    std::make_shared<PieceRef>(piece, dir));
+                unplaced_corners.insert(refs[piece.id][rotations[piece.id]]);
             }
         }
     }
@@ -250,13 +256,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     for (auto& piece : board.GetPuzzleDef()->GetEdges()) {
         if (!rotations.empty())
         {
-            unplaced_edges.insert(
-                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+            unplaced_edges.insert(refs[piece.id][rotations[piece.id]]);
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_edges.insert(
-                    std::make_shared<PieceRef>(piece, dir));
+                unplaced_edges.insert(refs[piece.id][rotations[piece.id]]);
             }
         }
     }
@@ -264,13 +268,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     for (auto& piece : board.GetPuzzleDef()->GetInner()) {
         if (!rotations.empty())
         {
-            unplaced_inner.insert(
-                std::make_shared<PieceRef>(piece, rotations[piece.id]));
+            unplaced_inner.insert(refs[piece.id][rotations[piece.id]]);
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_inner.insert(
-                    std::make_shared<PieceRef>(piece, dir));
+                unplaced_inner.insert(refs[piece.id][rotations[piece.id]]);
             }
         }
     }
@@ -327,6 +329,165 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 
     highest_stack_pos = static_cast<int>(stack.visited.size());
     board.AdjustDirBorder();
+
+    // create fast access structure for finding all pieces matching
+    // given list of patterns
+    // TBD - following need refactor + fix to work with specific pieces rotation provided
+    color_count = board.GetPuzzleDef()->GetColorCount(); 
+    color_count += 1; // add 0 as a color
+    int any_color = color_count; // make last color encode the "ANY" matching pattern
+    for (auto& piece : board.GetPuzzleDef()->GetInner()) 
+    {
+        for (int dir = 0; dir < 4; ++dir) {
+            auto& ref = refs[piece.id][dir];
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, any_color, any_color)].push_back(ref);
+        }
+    }
+
+
+    for (auto& piece : board.GetPuzzleDef()->GetCorners()) 
+    {
+        // corners are of form something, something, 0, 0
+        {
+            auto& ref = refs[piece.id][0]; // something, something, 0, 0
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][1]; // 0, something, something, 0
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][2]; // 0, 0, something, something
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][3]; // something, 0, 0, something
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+        }
+
+    }
+
+    for (auto& piece : board.GetPuzzleDef()->GetEdges())
+    {
+        // edges are of form something, something, something, 0
+        {
+            auto& ref = refs[piece.id][0]; // something, something, something, 0
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][1]; // 0, something, something, something 
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][2]; // something, 0, something, something 
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+        }
+
+        {
+            auto& ref = refs[piece.id][3]; // something, something, 0, something 
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+
+            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+        }
+    }
+}
+
+int Backtracker::EncodePatterns(int east, int south, int west, int north)
+{
+    int encoded = east;
+
+    encoded *= (color_count + 1);
+    encoded += south;
+
+    encoded *= (color_count + 1);
+    encoded += west;
+
+    encoded *= (color_count + 1);
+    encoded += north;
+
+    return encoded;
 }
 
 bool Backtracker::Step()
@@ -513,20 +674,8 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
     }
 
     std::set< std::shared_ptr<PieceRef> >* possible = nullptr;
+    int any_color = color_count; // make last color encode the "ANY" matching pattern
     for (auto loc : unvisited) {
-        feasible_pieces[loc->x][loc->y] = std::make_unique< std::vector<
-            std::shared_ptr<PieceRef> > >();
-
-        if (loc->type == Board::LocType::CORNER) {
-            possible = &unplaced_corners;
-        }
-        else if (loc->type == Board::LocType::EDGE) {
-            possible = &unplaced_edges;
-        }
-        else {
-            possible = &unplaced_inner;
-        }
-
         if ((connecting || loc->type == Board::LocType::INNER) && !stack.IsEmpty()) {
             // for inner pieces, check if they have any neighbours, otherwise we
             // are wasting time computing those
@@ -540,20 +689,33 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
             }
         }
 
-        for (auto& piece : *possible) {
-            if (!board.GetLocations()[piece->GetId()]) {
-                auto& forbidden_map = stack.visited.top().forbidden;
-                auto it = forbidden_map.find(loc);
-                bool is_forbidden = false;
-                if (it != forbidden_map.end())
-                {
-                    if (it->second.find(piece) != it->second.end()) {
-                        is_forbidden = true;
+        feasible_pieces[loc->x][loc->y] = std::make_unique< std::vector<
+            std::shared_ptr<PieceRef> > >();
+
+        int key = EncodePatterns(!loc->neighbours[EAST] ? 0 : (loc->neighbours[EAST]->ref ? loc->neighbours[EAST]->ref->GetPattern(WEST) : any_color),
+            !loc->neighbours[SOUTH] ? 0 : (loc->neighbours[SOUTH]->ref ? loc->neighbours[SOUTH]->ref->GetPattern(NORTH) : any_color),
+            !loc->neighbours[WEST] ? 0 : (loc->neighbours[WEST]->ref ? loc->neighbours[WEST]->ref->GetPattern(EAST) : any_color),
+            !loc->neighbours[NORTH] ? 0 : (loc->neighbours[NORTH]->ref ? loc->neighbours[NORTH]->ref->GetPattern(SOUTH) : any_color));
+
+        auto it = neighbour_table.find(key);
+        if (it != neighbour_table.end())
+        {
+            for (auto& piece : it->second) {
+                if (!board.GetLocations()[piece->GetId()]) {
+                    auto& forbidden_map = stack.visited.top().forbidden;
+                    auto it = forbidden_map.find(loc);
+                    bool is_forbidden = false;
+                    if (it != forbidden_map.end())
+                    {
+                        if (it->second.find(piece) != it->second.end()) {
+                            is_forbidden = true;
+                        }
                     }
-                }                
-                if (!is_forbidden && CanBePlacedAt(loc, piece)) {
-                    feasible_pieces[loc->x][loc->y]->push_back(piece);
+                    if (!is_forbidden) {
+                        feasible_pieces[loc->x][loc->y]->push_back(piece);
+                    }
                 }
+
             }
         }
     }
@@ -602,100 +764,12 @@ int Backtracker::CheckFeasible(std::vector<std::vector<
             best_feasible_locations.push_back(loc);
             best_unplaced_container = possible;
         }
-
-        if (best_score == 0) {
-            // impossible to place anything here...
-            break;
-        }
     }
 
     return best_score;
 }
 
-bool Backtracker::CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
-{
-    if (loc->neighbours[NORTH] && loc->neighbours[NORTH]->ref)
-    {
-        if (ref->GetPattern(NORTH) !=
-            loc->neighbours[NORTH]->ref->GetPattern(SOUTH)) {
-            return false;
-        }
-    }
-
-    if (loc->neighbours[SOUTH] && loc->neighbours[SOUTH]->ref)
-    {
-        if (ref->GetPattern(SOUTH) !=
-            loc->neighbours[SOUTH]->ref->GetPattern(NORTH)) {
-            return false;
-        }
-    }
-
-    if (loc->neighbours[WEST] && loc->neighbours[WEST]->ref)
-    {
-        if (ref->GetPattern(WEST) !=
-            loc->neighbours[WEST]->ref->GetPattern(EAST)) {
-            return false;
-        }
-    }
-
-    if (loc->neighbours[EAST] && loc->neighbours[EAST]->ref)
-    {
-        if (ref->GetPattern(EAST) !=
-            loc->neighbours[EAST]->ref->GetPattern(WEST)) {
-            return false;
-        }
-    }
-
-    // corners/edges special checks
-    if (loc->x == 0) {
-        if (loc->y == 0) {
-            if (ref->GetDir() != EAST) {
-                return false;
-            }
-        }
-        else if (loc->y == board.GetPuzzleDef()->GetWidth() - 1) {
-            if (ref->GetDir() != SOUTH) {
-                return false;
-            }
-        }
-        else {
-            if (ref->GetDir() != EAST) {
-                return false;
-            }
-        }
-    }
-    else if (loc->x == board.GetPuzzleDef()->GetHeight() - 1) {
-        if (loc->y == 0) {
-            if (ref->GetDir() != NORTH) {
-                return false;
-            }
-        }
-        else if (loc->y == board.GetPuzzleDef()->GetWidth() - 1) {
-            if (ref->GetDir() != WEST) {
-                return false;
-            }
-        }
-        else {
-            if (ref->GetDir() != WEST) {
-                return false;
-            }
-        }
-    }
-    else if (loc->y == 0) {
-        if (ref->GetDir() != NORTH) {
-            return false;
-        }
-    }
-    else if (loc->y == board.GetPuzzleDef()->GetWidth() - 1) {
-        if (ref->GetDir() != SOUTH) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
+void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref)
 {
     LDEBUG("Placing %i at (%i, %i) [%i, %i, %i, %i]  dir=%i stack_size=%i\n",
         ref->GetId(), loc->x, loc->y, 

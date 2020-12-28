@@ -3,6 +3,8 @@
 #include <set>
 #include <vector>
 #include <stack>
+#include <unordered_map>
+#include <array>
 #include <gmp.h>
 #include "Board.h"
 
@@ -172,11 +174,11 @@ private:
         std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
         bool ignore_impossible = false);
 
-    bool CanBePlacedAt(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
-
-    void Place(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
+    void Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref);
 
     bool Backtrack();
+
+    int EncodePatterns(int east, int south, int west, int north);
 
 private:
     enum class State {
@@ -204,8 +206,13 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_edges;
     std::set< std::shared_ptr<PieceRef> > unplaced_inner;
 
+    std::unordered_map<int, std::list< std::shared_ptr<PieceRef>>> neighbour_table;
+    int color_count;
+
     std::vector< CallbackOnSolve* > on_solve;
     std::vector< CallbackOnSolve* > on_new_best;
+
+    std::vector< std::array<std::shared_ptr<PieceRef>, 4> > refs; // pool owning all pieces references
 
     Stats stats;
     ColorAxisCounts rotChecker;

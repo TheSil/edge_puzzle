@@ -20,6 +20,8 @@ public:
 
     int GetPieceCount() const;
 
+    int GetColorCount() const;
+
     PieceDef GetPieceDef(int id) const;
 
     const std::vector<PieceDef>& GetCorners() const;

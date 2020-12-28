@@ -66,6 +66,11 @@ int PuzzleDef::GetPieceCount() const
     return static_cast<int>(all.size());
 }
 
+int PuzzleDef::GetColorCount() const
+{
+    return inner_colors + edge_colors;
+}
+
 PieceDef PuzzleDef::GetPieceDef(int id) const
 {
     return all.at(id);
