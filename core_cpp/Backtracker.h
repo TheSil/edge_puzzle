@@ -19,8 +19,9 @@ public:
         Board::Loc* loc;
         std::unordered_map<Board::Loc*,
             std::set< std::shared_ptr<PieceRef> > > forbidden;
+        int score;
 
-        LevelInfo(Board::Loc* loc) : loc(loc)
+        LevelInfo(Board::Loc* loc) : loc(loc), score(0)
         {
         }
     };
@@ -189,7 +190,7 @@ private:
 
     int counter;
     int finalizing_threshold;
-    int highest_stack_pos;
+    int highest_score;
 
     // cached
     int height;

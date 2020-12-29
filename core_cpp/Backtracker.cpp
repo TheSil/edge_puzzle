@@ -205,7 +205,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     : board(board),
     find_all(find_all), connecting(true),
     counter(0), finalizing_threshold(90),
-    highest_stack_pos(0)
+    highest_score(0)
 {
     height = board.GetPuzzleDef()->GetHeight();
     width = board.GetPuzzleDef()->GetWidth();
@@ -286,7 +286,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         stack.start_size++;
     }
 
-    highest_stack_pos = static_cast<int>(stack.visited.size());
+    highest_score = static_cast<int>(stack.visited.size());
     board.AdjustDirBorder();
 
     // create fast access structure for finding all pieces matching
@@ -640,9 +640,18 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref)
     }
 
     unvisited.erase(loc);
+    int prev_score = stack.visited.top().score;
     stack.visited.push(loc);
-    if (stack.visited.size() > highest_stack_pos) {
-        highest_stack_pos = static_cast<int>(stack.visited.size());
+    int neighbours = 0;
+    for (int i = 0; i < 4; ++i) {
+        neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
+    }
+    int new_score = prev_score + neighbours;
+    stack.visited.top().score = new_score;
+
+
+    if (new_score > highest_score) {
+        highest_score = new_score;
 
         for (auto& callback : on_new_best) {
             callback->Call(board);
