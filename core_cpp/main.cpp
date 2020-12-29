@@ -243,12 +243,12 @@ int main(int argc, char* argv[])
             if (board.GetScore() > max_score) {
                 max_score = score;
                 if (score > minimal_save_score) {
-                    try {
-                        remove(last_save.c_str());
-                    }
-                    catch (...) {
+                    //try {
+                    //    remove(last_save.c_str());
+                    //}
+                    //catch (...) {
 
-                    }
+                    //}
                     std::stringstream ss;
                     ss << prefix << "_swapper_save_" << score << ".csv";
                     last_save = ss.str();

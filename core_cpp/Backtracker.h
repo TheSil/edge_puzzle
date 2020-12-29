@@ -170,9 +170,7 @@ private:
     int CheckFeasible(std::vector<
         std::unique_ptr< std::vector<
         std::shared_ptr<PieceRef> > > >& feasible_pieces,
-        std::vector<Board::Loc*>& best_feasible_locations,
-        std::set< std::shared_ptr<PieceRef> >*& best_unplaced_container,
-        bool ignore_impossible = false);
+        std::vector<Board::Loc*>& best_feasible_locations);
 
     void Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref);
 
@@ -184,8 +182,7 @@ private:
     enum class State {
         SEARCHING = 0,
         BACKTRACKING = 1,
-        FINALIZING = 2,
-        FINISHED = 3
+        FINISHED = 2
     };
 
     Board& board;
@@ -202,13 +199,11 @@ private:
 
     std::set<Board::Loc*> unvisited;
     bool find_all;
-    bool enable_finalizing;
     bool connecting;
-    bool constraint_reducing;
 
     std::set< std::shared_ptr<PieceRef> > unplaced_pieces;
 
-    std::unordered_map<int, std::list< std::shared_ptr<PieceRef>>> neighbour_table;
+    std::unordered_map<int, std::vector< std::shared_ptr<PieceRef>>> neighbour_table;
     int color_count;
 
     std::vector< CallbackOnSolve* > on_solve;
