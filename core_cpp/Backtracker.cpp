@@ -431,6 +431,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
             neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
         }
     }
+
+    // shuffle the neighbour table to give this particular run bit of randomness
+    for (auto& item : neighbour_table) {
+        random_shuffle(item.second.begin(), item.second.end());
+    }
 }
 
 int Backtracker::EncodePatterns(int east, int south, int west, int north)
@@ -471,12 +476,10 @@ bool Backtracker::Step()
             }
         }
 
-        std::vector<
-            std::unique_ptr< std::vector<
-            std::shared_ptr<PieceRef> > > > feasible_pieces;
-        std::vector<Board::Loc*> best_feasible_locations;
-        int best_score = CheckFeasible(feasible_pieces, best_feasible_locations);
+        std::shared_ptr<PieceRef> selected_piece;
+        Board::Loc* selected_loc = nullptr;
 
+        int best_score = CheckFeasible(selected_loc, selected_piece);
         if (best_score <= 0) {
             // impossible to place anything here... backtrack
             stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
@@ -485,19 +488,14 @@ bool Backtracker::Step()
             return true;
         }
 
-        // select the piece randomly...
-        Board::Loc* selected_loc = best_feasible_locations[rand() % best_feasible_locations.size()];
-        auto& feasible = feasible_pieces[height * selected_loc->x + selected_loc->y];
-        std::shared_ptr<PieceRef>& selected_piece_ref = feasible->at(rand() % feasible->size());
-
-        Place(selected_loc, selected_piece_ref);
-        unplaced_pieces.erase(selected_piece_ref);
+        Place(selected_loc, selected_piece);
+        unplaced_pieces.erase(selected_piece);
 
         // if inconsistent rotations, backtrack...
-        if (!rotChecker.CanBeFinished(selected_piece_ref->GetPattern(0)) ||
-            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(1)) ||
-            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(2)) ||
-            !rotChecker.CanBeFinished(selected_piece_ref->GetPattern(3)) ) {
+        if (!rotChecker.CanBeFinished(selected_piece->GetPattern(0)) ||
+            !rotChecker.CanBeFinished(selected_piece->GetPattern(1)) ||
+            !rotChecker.CanBeFinished(selected_piece->GetPattern(2)) ||
+            !rotChecker.CanBeFinished(selected_piece->GetPattern(3)) ) {
             LDEBUG("Inconsistent rotation, initating backtrack...\n");
             stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
             state = State::BACKTRACKING;
@@ -537,18 +535,16 @@ bool Backtracker::Step()
     return true;
 }
 
-int Backtracker::CheckFeasible(std::vector<
-    std::unique_ptr< std::vector<
-    std::shared_ptr<PieceRef> > > >& feasible_pieces, 
-    std::vector<Board::Loc*>& best_feasible_locations)
+int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
+    std::shared_ptr<PieceRef>& feasible_piece)
 {
     int best_score = -1;
 
-    feasible_pieces.clear();
-    feasible_pieces.resize(height * width);
-    best_feasible_locations.clear();
+    std::shared_ptr<PieceRef> selected;
+    Board::Loc* selected_loc = nullptr;
 
     int any_color = color_count; // make last color encode the "ANY" matching pattern
+    // TBD we should visit unvisited in random order too ...
     for (auto loc : unvisited) {
         if ((connecting || loc->type == Board::LocType::INNER) && !stack.IsEmpty()) {
             // for inner pieces, check if they have any neighbours, otherwise we
@@ -562,10 +558,6 @@ int Backtracker::CheckFeasible(std::vector<
             }
         }
 
-        feasible_pieces[height * loc->x + loc->y] = std::make_unique< std::vector<
-            std::shared_ptr<PieceRef> > >();
-        auto& new_feasible = feasible_pieces[height * loc->x + loc->y];
-
         auto& east_loc = loc->neighbours[EAST];
         auto& south_loc = loc->neighbours[SOUTH];
         auto& west_loc = loc->neighbours[WEST];
@@ -577,43 +569,47 @@ int Backtracker::CheckFeasible(std::vector<
             !north_loc ? 0 : (north_loc->ref ? north_loc->ref->GetPattern(SOUTH) : any_color));
 
         auto it = neighbour_table.find(key);
-        if (it != neighbour_table.end())
+        if (it == neighbour_table.end())
         {
-            for (auto& piece : it->second) {
-                if (!board.GetLocations()[piece->GetId()]) {
-                    auto& forbidden_map = stack.visited.top().forbidden;
-                    auto it = forbidden_map.find(loc);
-                    bool is_forbidden = false;
-                    if (it != forbidden_map.end())
-                    {
-                        if (it->second.find(piece) != it->second.end()) {
-                            is_forbidden = true;
-                        }
-                    }
-                    if (!is_forbidden) {
-                        new_feasible->push_back(piece);
-                    }
-                }
-
-            }
+            return 0;
         }
 
-        int score = static_cast<int>(new_feasible->size());
+        int feasible_count = 0;
+        std::shared_ptr<PieceRef> repre;
+        for (auto& piece : it->second) {
+            if (!board.GetLocations()[piece->GetId()]) {
+                auto& forbidden_map = stack.visited.top().forbidden;
+                auto it = forbidden_map.find(loc);
+                bool is_forbidden = false;
+                if (it != forbidden_map.end())
+                {
+                    if (it->second.find(piece) != it->second.end()) {
+                        is_forbidden = true;
+                    }
+                }
+                if (!is_forbidden) {
+                    repre = piece;
+                    feasible_count += 1;
+                }
+            }
+
+        }
+
+        int score = feasible_count;
         if (score == 0) {
             // impossible to place anything here, end asap
             return 0;
         }
 
-        if (score == best_score) {
-            best_feasible_locations.push_back(loc);
-        }
-        else if ((best_score == -1 || score < best_score)) {
+        if ((best_score == -1 || score < best_score)) {
             best_score = score;
-            best_feasible_locations.clear();
-            best_feasible_locations.push_back(loc);
+            selected = repre;
+            selected_loc = loc;
         }
     }
 
+    feasible_location = selected_loc;
+    feasible_piece = selected;
     return best_score;
 }
 

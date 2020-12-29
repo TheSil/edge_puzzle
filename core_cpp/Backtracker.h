@@ -167,10 +167,8 @@ public:
     int GetCounter();
 
 private:
-    int CheckFeasible(std::vector<
-        std::unique_ptr< std::vector<
-        std::shared_ptr<PieceRef> > > >& feasible_pieces,
-        std::vector<Board::Loc*>& best_feasible_locations);
+    int CheckFeasible(Board::Loc*& feasible_location,
+        std::shared_ptr<PieceRef>& feasible_piece);
 
     void Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref);
 
