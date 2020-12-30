@@ -60,13 +60,13 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     stats.Init(board);
-    rotChecker.Init(board.GetPuzzleDef());
+    rot_checker.Init(board.GetPuzzleDef());
 
     // hints
     for (auto& hint : board.GetPuzzleDef()->GetHints()) {
         int dir = (hint.dir != -1) ? hint.dir : 0;
         board.PutPiece(hint.id, hint.x, hint.y, dir);
-        rotChecker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
+        rot_checker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
             board.GetLocation(hint.x, hint.y)->ref->GetPattern(1), 
             board.GetLocation(hint.x, hint.y)->ref->GetPattern(2), 
             board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
@@ -322,10 +322,10 @@ bool Backtracker::Step()
         unplaced_pieces.erase(selected_piece);
 
         // if inconsistent rotations, backtrack...
-        if (!rotChecker.CanBeFinished(selected_piece->GetPattern(0)) ||
-            !rotChecker.CanBeFinished(selected_piece->GetPattern(1)) ||
-            !rotChecker.CanBeFinished(selected_piece->GetPattern(2)) ||
-            !rotChecker.CanBeFinished(selected_piece->GetPattern(3)) ) {
+        if (!rot_checker.CanBeFinished(selected_piece->GetPattern(0)) ||
+            !rot_checker.CanBeFinished(selected_piece->GetPattern(1)) ||
+            !rot_checker.CanBeFinished(selected_piece->GetPattern(2)) ||
+            !rot_checker.CanBeFinished(selected_piece->GetPattern(3)) ) {
             LDEBUG("Inconsistent rotation, initating backtrack...\n");
             stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
             state = State::BACKTRACKING;
@@ -450,7 +450,7 @@ void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref)
         ref->GetPattern(0), ref->GetPattern(1), ref->GetPattern(2), ref->GetPattern(3),
         ref->GetDir(), static_cast<int>(stack.visited.size()) + 1);
     board.PutPiece(loc, ref);
-    rotChecker.Place(ref->GetPattern(0),
+    rot_checker.Place(ref->GetPattern(0),
         ref->GetPattern(1),
         ref->GetPattern(2),
         ref->GetPattern(3));
@@ -521,7 +521,7 @@ bool Backtracker::Backtrack()
     else {
         stats.UpdateUnplacedInner(1);
     }
-    rotChecker.Unplace(removing->ref->GetPattern(0),
+    rot_checker.Unplace(removing->ref->GetPattern(0),
         removing->ref->GetPattern(1),
         removing->ref->GetPattern(2),
         removing->ref->GetPattern(3));

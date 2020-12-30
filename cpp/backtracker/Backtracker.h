@@ -79,7 +79,7 @@ private:
     std::vector< std::array<std::shared_ptr<PieceRef>, 4> > refs; // pool owning all pieces references
 
     Stats stats;
-    ColorAxisCounts rotChecker;
+    ColorAxisCounts rot_checker;
 };
 
 }
