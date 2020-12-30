@@ -1,11 +1,6 @@
 #pragma once
 
-#include <set>
-#include <vector>
-#include <stack>
-#include <unordered_map>
 #include <array>
-#include <gmp.h>
 #include "Board.h"
 #include "MpfWrapper.h"
 #include "Stack.h"
