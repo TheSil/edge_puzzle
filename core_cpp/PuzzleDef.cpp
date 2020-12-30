@@ -1,11 +1,11 @@
 #include <fstream>
+#include <set>
 #include "PuzzleDef.h"
 
 using namespace edge;
 
 PuzzleDef::PuzzleDef(int height, int width, int edge_colors, int inner_colors)
-    : height(height), width(width),
-    edge_colors(edge_colors), inner_colors(inner_colors)
+    : height(height), width(width)
 {
 }
 
@@ -18,6 +18,8 @@ PuzzleDef PuzzleDef::Load(const std::string& filename, const std::string& hints)
     getline(file, line);
     ParseNumberLine(line, vals);
     PuzzleDef def(vals[0], vals[1], vals[2], vals[3]);
+    std::set<int> inner_colors;
+    std::set<int> edge_colors;
 
     while (getline(file, line)) {
         vals.clear();
@@ -28,15 +30,28 @@ PuzzleDef PuzzleDef::Load(const std::string& filename, const std::string& hints)
         auto zeroes = std::count(vals.begin(), vals.end(), 0);
         if (zeroes == 2) { // corner
             def.corners.push_back(piece);
+            edge_colors.insert((int)piece.patterns[0]);
+            edge_colors.insert((int)piece.patterns[1]);
         }
         else if (zeroes == 1) { // edge
             def.edges.push_back(piece);
+            edge_colors.insert((int)piece.patterns[0]);
+            inner_colors.insert((int)piece.patterns[1]);
+            edge_colors.insert((int)piece.patterns[2]);
         }
         else { // inner
             def.inner.push_back(piece);
+            inner_colors.insert((int)piece.patterns[0]);
+            inner_colors.insert((int)piece.patterns[1]);
+            inner_colors.insert((int)piece.patterns[2]);
+            inner_colors.insert((int)piece.patterns[3]);
+
         }
         def.all[vals[0]] = piece;
     }
+
+    def.edge_colors = edge_colors;
+    def.inner_colors = inner_colors;
 
     if (!hints.empty()) {
         std::ifstream hints_file(hints);
@@ -66,9 +81,14 @@ int PuzzleDef::GetPieceCount() const
     return static_cast<int>(all.size());
 }
 
-int PuzzleDef::GetColorCount() const
+const std::set<int>& PuzzleDef::GetEdgeColors() const
 {
-    return inner_colors + edge_colors;
+    return edge_colors;
+}
+
+const std::set<int>& PuzzleDef::GetInnerColors() const
+{
+    return inner_colors;
 }
 
 PieceDef PuzzleDef::GetPieceDef(int id) const

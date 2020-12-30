@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <string>
 #include "Defs.h"
 
@@ -20,7 +21,9 @@ public:
 
     int GetPieceCount() const;
 
-    int GetColorCount() const;
+    const std::set<int>& GetEdgeColors() const;
+
+    const std::set<int>& GetInnerColors() const;
 
     PieceDef GetPieceDef(int id) const;
 
@@ -35,10 +38,12 @@ public:
     const std::vector<HintDef>& GetHints() const;
 
 private:
-    int height, width, edge_colors, inner_colors;
+    int height, width;
     std::vector<PieceDef> corners, edges, inner;
     std::vector<HintDef> hints;
     std::map<int, PieceDef> all;
+    std::set<int> edge_colors, inner_colors;
+
 };
 
 }

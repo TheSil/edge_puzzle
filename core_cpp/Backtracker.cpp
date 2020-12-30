@@ -292,9 +292,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     // create fast access structure for finding all pieces matching
     // given list of patterns
     // TBD - following need refactor + fix to work with specific pieces rotation provided
-    color_count = board.GetPuzzleDef()->GetColorCount(); 
-    color_count += 1; // add 0 as a color
-    int any_color = color_count; // make last color encode the "ANY" matching pattern
+    max_color_number = *board.GetPuzzleDef()->GetEdgeColors().rbegin();
+    max_color_number = std::max(max_color_number, *board.GetPuzzleDef()->GetInnerColors().rbegin());
+    max_color_number += 1;
+    int any_color = max_color_number; // make last color encode the "ANY" matching pattern
     for (auto& piece : board.GetPuzzleDef()->GetInner()) 
     {
         for (int dir = 0; dir < 4; ++dir) {
@@ -442,13 +443,13 @@ int Backtracker::EncodePatterns(int east, int south, int west, int north)
 {
     int encoded = east;
 
-    encoded *= (color_count + 1);
+    encoded *= (max_color_number + 1);
     encoded += south;
 
-    encoded *= (color_count + 1);
+    encoded *= (max_color_number + 1);
     encoded += west;
 
-    encoded *= (color_count + 1);
+    encoded *= (max_color_number + 1);
     encoded += north;
 
     return encoded;
@@ -543,7 +544,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
     std::shared_ptr<PieceRef> selected;
     Board::Loc* selected_loc = nullptr;
 
-    int any_color = color_count; // make last color encode the "ANY" matching pattern
+    int any_color = max_color_number; // make last color encode the "ANY" matching pattern
     // TBD we should visit unvisited in random order too ...
     for (auto loc : unvisited) {
         if ((connecting || loc->type == Board::LocType::INNER) && !stack.IsEmpty()) {

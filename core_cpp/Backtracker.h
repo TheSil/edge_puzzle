@@ -203,7 +203,7 @@ private:
     std::set< std::shared_ptr<PieceRef> > unplaced_pieces;
 
     std::unordered_map<int, std::vector< std::shared_ptr<PieceRef>>> neighbour_table;
-    int color_count;
+    int max_color_number;
 
     std::vector< CallbackOnSolve* > on_solve;
     std::vector< CallbackOnSolve* > on_new_best;
