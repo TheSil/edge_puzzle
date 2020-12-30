@@ -251,7 +251,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_pieces.insert(refs[piece.second.id][rotations[piece.second.id]]);
+                unplaced_pieces.insert(refs[piece.second.id][dir]);
             }
         }
     }
@@ -296,30 +296,32 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     max_color_number = std::max(max_color_number, *board.GetPuzzleDef()->GetInnerColors().rbegin());
     max_color_number += 1;
     int any_color = max_color_number; // make last color encode the "ANY" matching pattern
-    for (auto& piece : board.GetPuzzleDef()->GetInner()) 
-    {
+    for (auto& piece : board.GetPuzzleDef()->GetInner()) {
         for (int dir = 0; dir < 4; ++dir) {
-            auto& ref = refs[piece.id][dir];
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == dir)
+            {
+                auto& ref = refs[piece.id][dir];
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, any_color, any_color)].push_back(ref);
+            }
         }
     }
 
@@ -328,43 +330,55 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     {
         // corners are of form something, something, 0, 0
         {
-            auto& ref = refs[piece.id][0]; // something, something, 0, 0
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 0)
+            {
+                auto& ref = refs[piece.id][0]; // something, something, 0, 0
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][1]; // 0, something, something, 0
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 1)
+            {
+                auto& ref = refs[piece.id][1]; // 0, something, something, 0
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][2]; // 0, 0, something, something
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 2)
+            {
+                auto& ref = refs[piece.id][2]; // 0, 0, something, something
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][3]; // something, 0, 0, something
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 3)
+            {
+                auto& ref = refs[piece.id][3]; // something, 0, 0, something
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+            }
         }
 
     }
@@ -373,63 +387,75 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     {
         // edges are of form something, something, something, 0
         {
-            auto& ref = refs[piece.id][0]; // something, something, something, 0
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 0)
+            {
+                auto& ref = refs[piece.id][0]; // something, something, something, 0
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][1]; // 0, something, something, something 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 1)
+            {
+                auto& ref = refs[piece.id][1]; // 0, something, something, something 
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][2]; // something, 0, something, something 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 2)
+            {
+                auto& ref = refs[piece.id][2]; // something, 0, something, something 
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+            }
         }
 
         {
-            auto& ref = refs[piece.id][3]; // something, something, 0, something 
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+            if (rotations.empty() || rotations[piece.id] == 3)
+            {
+                auto& ref = refs[piece.id][3]; // something, something, 0, something 
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-            neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-            neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
 
-            neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+            }
         }
     }
 
