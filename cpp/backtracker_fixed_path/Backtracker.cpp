@@ -260,6 +260,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     // set path
 
     // row scan
+#if 0
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             auto loc = board.GetLocation(x, y);
@@ -268,6 +269,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
             }
         }
     }
+#endif
 
     // first corners, then row scan
     //for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
@@ -287,47 +289,48 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     //    }
     //}
 
+#if 0
     // going from outer to inner
-    //for (int t = 0; t < board.GetPuzzleDef()->GetWidth()/2; ++t) {
-    //    int x, y;
+    for (int t = 0; t < board.GetPuzzleDef()->GetWidth()/2; ++t) {
+        int x, y;
 
-    //    // (t,t) -> (t,w-t-2)
-    //    x = t;
-    //    for (y = t; y <= board.GetPuzzleDef()->GetWidth() - t - 2; ++y) {
-    //        auto loc = board.GetLocation(x, y);
-    //        if (!loc->hint) {
-    //            path.push_back(loc);
-    //        }
-    //    }
+        // (t,t) -> (t,w-t-2)
+        x = t;
+        for (y = t; y <= board.GetPuzzleDef()->GetWidth() - t - 2; ++y) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
 
-    //    // (t,w-t-1) -> (h-t-2,w-t-1)
-    //    y = board.GetPuzzleDef()->GetWidth() - t - 1;
-    //    for (x = t; x <= board.GetPuzzleDef()->GetHeight() - t - 2; ++x) {
-    //        auto loc = board.GetLocation(x, y);
-    //        if (!loc->hint) {
-    //            path.push_back(loc);
-    //        }
-    //    }        
+        // (t,w-t-1) -> (h-t-2,w-t-1)
+        y = board.GetPuzzleDef()->GetWidth() - t - 1;
+        for (x = t; x <= board.GetPuzzleDef()->GetHeight() - t - 2; ++x) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }        
 
-    //    // (h-t-1,w-t-1) -> (h-t-1,t+1)
-    //    x = board.GetPuzzleDef()->GetHeight() - t - 1;
-    //    for (y = board.GetPuzzleDef()->GetWidth() - t - 1; y >= t+1; --y) {
-    //        auto loc = board.GetLocation(x, y);
-    //        if (!loc->hint) {
-    //            path.push_back(loc);
-    //        }
-    //    }
+        // (h-t-1,w-t-1) -> (h-t-1,t+1)
+        x = board.GetPuzzleDef()->GetHeight() - t - 1;
+        for (y = board.GetPuzzleDef()->GetWidth() - t - 1; y >= t+1; --y) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
 
-    //    // (h-t-1,t) -> (t+1,t)
-    //    y = t;
-    //    for (x = board.GetPuzzleDef()->GetHeight() - t - 1; x >= t+1; --x) {
-    //        auto loc = board.GetLocation(x, y);
-    //        if (!loc->hint) {
-    //            path.push_back(loc);
-    //        }
-    //    }
-    //}
-
+        // (h-t-1,t) -> (t+1,t)
+        y = t;
+        for (x = board.GetPuzzleDef()->GetHeight() - t - 1; x >= t+1; --x) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+    }
+#endif
 
     // column scan
     //for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
@@ -398,7 +401,7 @@ bool Backtracker::Step()
     {
     case State::SEARCHING:
     {
-        if (stack.visited.size() - 1 == path.size()) {
+        if (stack.visited.size() - 1 == pieces_count) {
             for (auto& callback : on_solve) {
                 callback->Call(board);
             }
@@ -412,6 +415,59 @@ bool Backtracker::Step()
             state = State::BACKTRACKING;
             return true;
         }
+
+        if (path.size() < stack.visited.size()) {
+            // path not defined, we create our own as we go
+
+            // we check all connected pieces, and find such that it contains least feasible possibilities
+            auto& locations_map = board.GetLocations();
+            int min_feasible_count = -1;
+            Board::Loc* min_loc = nullptr;
+            for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
+                for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
+                    auto loc = board.GetLocation(x, y);
+                    if (!loc->ref) { // nothing here yet
+
+                        auto& east_loc = loc->neighbours[EAST];
+                        auto& south_loc = loc->neighbours[SOUTH];
+                        auto& west_loc = loc->neighbours[WEST];
+                        auto& north_loc = loc->neighbours[NORTH];
+
+                        int key = EncodePatterns(!east_loc ? 0 : (east_loc->ref ? east_loc->ref->GetPattern(WEST) : ANY_COLOR),
+                            !south_loc ? 0 : (south_loc->ref ? south_loc->ref->GetPattern(NORTH) : ANY_COLOR),
+                            !west_loc ? 0 : (west_loc->ref ? west_loc->ref->GetPattern(EAST) : ANY_COLOR),
+                            !north_loc ? 0 : (north_loc->ref ? north_loc->ref->GetPattern(SOUTH) : ANY_COLOR));
+
+                        auto it = neighbour_table.find(key);
+                        if (it == neighbour_table.end())
+                        { // no piece found that can match this combination of pattern
+                            state = State::BACKTRACKING;
+                            return true;
+                        }
+
+                        int feasible_count = 0;
+                        for (auto& piece : it->second) {
+                            if (!locations_map[piece->GetId()]) { // not yet placed
+                                feasible_count += 1;
+                            }
+                        }
+
+                        if (feasible_count == 0) {
+                            // there is a position where nothing can be placed, backtrack
+                            state = State::BACKTRACKING;
+                            return true;
+                        }
+
+                        if (min_feasible_count == -1 || feasible_count < min_feasible_count) {
+                            min_loc = loc;
+                        }
+                    }
+                }
+            }
+
+            path.push_back(min_loc);
+        }
+
 
         PieceRef* selected_piece = nullptr;
         Board::Loc* selected_loc = nullptr;

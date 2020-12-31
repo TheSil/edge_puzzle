@@ -19,7 +19,8 @@ public:
             max_score = score;
         }
         printf("New best backstack position reached, score: %i\n", score);
-        if (score > 330/*420*/) {
+        if (true){
+        //if (score > 330/*420*/) {
             std::stringstream ss;
             try {
                 remove(last_save.c_str());
