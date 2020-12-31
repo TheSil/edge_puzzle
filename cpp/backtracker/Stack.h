@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <stack>
 #include "Board.h"
 
@@ -14,7 +15,7 @@ public:
     struct LevelInfo {
         Board::Loc* loc;
         std::unordered_map<Board::Loc*,
-            std::set< std::shared_ptr<PieceRef> > > forbidden;
+            std::unordered_set< PieceRef* > > forbidden;
         int score;
 
         LevelInfo(Board::Loc* loc) : loc(loc), score(0)

@@ -103,8 +103,6 @@ int main(int argc, char* argv[])
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
-#if 1 // BACKTRACKER
-
     std::set<std::pair<int, int>>* pMap = nullptr;
     //tested fields map
     //std::set<std::pair<int, int>> map;
@@ -164,8 +162,6 @@ int main(int argc, char* argv[])
     printf("max_score: %i, curr_score: %i, iters: %i, "
         "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n",
         max_score, score, i, explAbsLast.c_str(), explAbs.c_str(), explRatio.c_str(), explMax.c_str());
-
-#endif
 
     return 0;
 }

@@ -21,14 +21,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         find_all = true;
     }
 
-    refs.resize(board.GetPuzzleDef()->GetPieceCount() + 1);
-    for (int id = 1; id < refs.size(); ++id) {
-        const auto& def = board.GetPuzzleDef()->GetPieceDef(id);
-        for (int dir = 0; dir < 4; ++dir) {
-            refs[id][dir] = std::make_shared<PieceRef>(def, dir);
-        } 
-    }
-
     std::map<int, int> rotations;
     if (!rotations_file.empty()) {
         std::ifstream file(rotations_file);
@@ -46,11 +38,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     for (auto& piece : board.GetPuzzleDef()->GetAll()) {
         if (!rotations.empty())
         {
-            unplaced_pieces.insert(refs[piece.second.id][rotations[piece.second.id]]);
+            unplaced_pieces.insert(board.GetRef(piece.second.id,rotations[piece.second.id]));
         }
         else {
             for (int dir = 0; dir < 4; ++dir) {
-                unplaced_pieces.insert(refs[piece.second.id][dir]);
+                unplaced_pieces.insert(board.GetRef(piece.second.id,dir));
             }
         }
     }
@@ -67,7 +59,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
             board.GetLocation(hint.x, hint.y)->ref->GetPattern(2), 
             board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
 
-        std::vector< std::shared_ptr<PieceRef> > to_erase;
+        std::vector< PieceRef* > to_erase;
 
         to_erase.clear();
         for (auto& ref : unplaced_pieces) {
@@ -99,7 +91,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         for (int dir = 0; dir < 4; ++dir) {
             if (rotations.empty() || rotations[piece.id] == dir)
             {
-                auto& ref = refs[piece.id][dir];
+                auto ref = board.GetRef(piece.id, dir);
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -131,7 +123,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 0)
             {
-                auto& ref = refs[piece.id][0]; // something, something, 0, 0
+                auto ref = board.GetRef(piece.id, 0); // something, something, 0, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -144,7 +136,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 1)
             {
-                auto& ref = refs[piece.id][1]; // 0, something, something, 0
+                auto ref = board.GetRef(piece.id, 1); // 0, something, something, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -157,7 +149,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 2)
             {
-                auto& ref = refs[piece.id][2]; // 0, 0, something, something
+                auto ref = board.GetRef(piece.id, 2); // 0, 0, something, something
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
@@ -170,7 +162,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 3)
             {
-                auto& ref = refs[piece.id][3]; // something, 0, 0, something
+                auto ref = board.GetRef(piece.id, 3); // something, 0, 0, something
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -188,7 +180,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 0)
             {
-                auto& ref = refs[piece.id][0]; // something, something, something, 0
+                auto ref = board.GetRef(piece.id, 0); // something, something, something, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -206,7 +198,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 1)
             {
-                auto& ref = refs[piece.id][1]; // 0, something, something, something 
+                auto ref = board.GetRef(piece.id, 1); // 0, something, something, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -224,7 +216,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 2)
             {
-                auto& ref = refs[piece.id][2]; // something, 0, something, something 
+                auto ref = board.GetRef(piece.id, 2); // something, 0, something, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -242,7 +234,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         {
             if (rotations.empty() || rotations[piece.id] == 3)
             {
-                auto& ref = refs[piece.id][3]; // something, something, 0, something 
+                auto ref = board.GetRef(piece.id, 3); // something, something, 0, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
                 neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
@@ -302,7 +294,7 @@ bool Backtracker::Step()
             }
         }
 
-        std::shared_ptr<PieceRef> selected_piece;
+        PieceRef* selected_piece = nullptr;
         Board::Loc* selected_loc = nullptr;
 
         int best_score = CheckFeasible(selected_loc, selected_piece);
@@ -362,11 +354,11 @@ bool Backtracker::Step()
 }
 
 int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
-    std::shared_ptr<PieceRef>& feasible_piece)
+    PieceRef*& feasible_piece)
 {
     int best_score = -1;
 
-    std::shared_ptr<PieceRef> selected;
+    PieceRef* selected = nullptr;
     Board::Loc* selected_loc = nullptr;
     auto& forbidden_map = stack.visited.top().forbidden;
     auto& locations_map = board.GetLocations();
@@ -403,7 +395,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
         }
 
         int feasible_count = 0;
-        std::shared_ptr<PieceRef>* repre = nullptr;
+        PieceRef* repre = nullptr;
         for (auto& piece : it->second) {
             if (!locations_map[piece->GetId()]) {
                 auto it = forbidden_map.find(loc);
@@ -415,7 +407,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
                     }
                 }
                 if (!is_forbidden) {
-                    repre = &piece;
+                    repre = piece;
                     feasible_count += 1;
                 }
             }
@@ -430,7 +422,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
 
         if ((best_score == -1 || score < best_score)) {
             best_score = score;
-            selected = *repre;
+            selected = repre;
             selected_loc = loc;
         }
     }
@@ -440,7 +432,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
     return best_score;
 }
 
-void Backtracker::Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref)
+void Backtracker::Place(Board::Loc* loc, PieceRef* ref)
 {
     LDEBUG("Placing %i at (%i, %i) [%i, %i, %i, %i]  dir=%i stack_size=%i\n",
         ref->GetId(), loc->x, loc->y, 

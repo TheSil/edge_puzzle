@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include "Board.h"
 
 using namespace edge;
@@ -11,7 +12,7 @@ int ScoreBetween(const Board::Loc* loc) {
     return (loc->ref->GetPattern(FIRST) == second->ref->GetPattern(SECOND)) ? 1 : 0;
 }
 
-Board::Loc::Loc() : hint(nullptr), x(0), y(0), type(Board::LocType::UNKNOWN)
+Board::Loc::Loc() : ref(nullptr), hint(nullptr), x(0), y(0), type(Board::LocType::UNKNOWN)
 {
     // need to be relinked
     neighbours[0] = 0;
@@ -20,10 +21,9 @@ Board::Loc::Loc() : hint(nullptr), x(0), y(0), type(Board::LocType::UNKNOWN)
     neighbours[3] = 0;
 }
 
-Board::Loc::Loc(const Loc& other) : hint(other.hint), x(other.x), y(other.y), type(other.type)
+Board::Loc::Loc(const Loc& other) : ref(other.ref), hint(other.hint), x(other.x), y(other.y), type(other.type)
 {
-    // ref ignored, it is always empty during copy/assignment, must be relinked
-    // same for neighbours
+    // neighbours are ignored, it is always empty during copy/assignment, must be relinked
     neighbours[0] = 0;
     neighbours[1] = 0;
     neighbours[2] = 0;
@@ -32,10 +32,10 @@ Board::Loc::Loc(const Loc& other) : hint(other.hint), x(other.x), y(other.y), ty
 
 Board::Loc& Board::Loc::operator= (const Board::Loc& other)
 {
-    // ref ignored, it is always empty during copy/assignment, must be relinked
-    // same for neighbours
+    // neighbours are ignored, it is always empty during copy/assignment, must be relinked
     if (this != &other)
     {
+        ref = other.ref;
         hint = other.hint;
         x = other.x;
         y = other.y;
@@ -53,6 +53,14 @@ Board::Loc& Board::Loc::operator= (const Board::Loc& other)
 Board::Board(const PuzzleDef* def)
     : def(def)
 {
+    state.refs.resize(def->GetPieceCount() + 1);
+    for (int id = 1; id < state.refs.size(); ++id) {
+        const auto& piece_def = def->GetPieceDef(id);
+        for (int dir = 0; dir < 4; ++dir) {
+            state.refs[id][dir] = std::make_unique<PieceRef>(piece_def, dir);
+        }
+    }
+
     state.board.resize(def->GetHeight());
     for (size_t x = 0; x < state.board.size(); ++x)
     {
@@ -209,29 +217,25 @@ void Board::Randomize()
     auto edges_it = edges_copy.begin();
     auto inner_it = inner_copy.begin();
 
-    state.board[0][0].ref =
-        std::make_unique<PieceRef>(*corners_it++, EAST);
-    state.board[0][def->GetWidth() - 1].ref =
-        std::make_unique<PieceRef>(*corners_it++, SOUTH);
-    state.board[def->GetHeight() - 1][0].ref =
-        std::make_unique<PieceRef>(*corners_it++, NORTH);
-    state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref =
-        std::make_unique<PieceRef>(*corners_it++, WEST);
+    state.board[0][0].ref = GetRef((corners_it++)->id, EAST);
+    state.board[0][def->GetWidth() - 1].ref = GetRef((corners_it++)->id, SOUTH);
+    state.board[def->GetHeight() - 1][0].ref = GetRef((corners_it++)->id, NORTH);
+    state.board[def->GetHeight() - 1][def->GetWidth() - 1].ref = GetRef((corners_it++)->id, WEST);
 
     for (auto dest : top_edges) {
-        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, EAST);
+        state.board[dest.first][dest.second].ref = GetRef((edges_it++)->id, EAST);
     }
     for (auto dest : bottom_edges) {
-        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, WEST);
+        state.board[dest.first][dest.second].ref = GetRef((edges_it++)->id, WEST);
     }
     for (auto dest : left_edges) {
-        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, NORTH);
+        state.board[dest.first][dest.second].ref = GetRef((edges_it++)->id, NORTH);
     }
     for (auto dest : right_edges) {
-        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*edges_it++, SOUTH);
+        state.board[dest.first][dest.second].ref = GetRef((edges_it++)->id, SOUTH);
     }
     for (auto dest : inner) {
-        state.board[dest.first][dest.second].ref = std::make_unique<PieceRef>(*inner_it++, rand() % 4);
+        state.board[dest.first][dest.second].ref = GetRef((inner_it++)->id, rand() % 4);
     }
 
     UpdateIds();
@@ -312,12 +316,12 @@ void Board::PutPiece(int id, int x, int y, int dir)
         SwapLocations(state.locations_per_id[id], &state.board[x][y]);
         state.board[x][y].ref->SetDir(dir);
     } else {
-        state.board[x][y].ref = std::make_unique<PieceRef>(def->GetPieceDef(id), dir);
+        state.board[x][y].ref = GetRef(id, dir);
     }
     state.locations_per_id[id] = &state.board[x][y];
 }
 
-void Board::PutPiece(Board::Loc* loc, std::shared_ptr<PieceRef> ref)
+void Board::PutPiece(Board::Loc* loc, PieceRef* ref)
 {
     if (state.locations_per_id[ref->GetId()]) {
         // alrady placed, swap positions
@@ -401,6 +405,11 @@ void Board::SwapLocations(Board::Loc* loc1,
 Board::Loc* Board::GetLocation(int x, int y)
 {
     return &state.board[x][y];
+}
+
+PieceRef* Board::GetRef(int id, int dir)
+{
+    return state.refs[id][dir].get();
 }
 
 bool Board::AdjustDirInner(Loc* loc)

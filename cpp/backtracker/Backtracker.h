@@ -34,9 +34,9 @@ public:
 
 private:
     int CheckFeasible(Board::Loc*& feasible_location,
-        std::shared_ptr<PieceRef>& feasible_piece);
+        PieceRef*& feasible_piece);
 
-    void Place(Board::Loc* loc, std::shared_ptr<PieceRef>& ref);
+    void Place(Board::Loc* loc, PieceRef* ref);
 
     bool Backtrack();
 
@@ -60,15 +60,13 @@ private:
     bool find_all;
     bool connecting;
 
-    std::set< std::shared_ptr<PieceRef> > unplaced_pieces;
+    std::set< PieceRef* > unplaced_pieces;
 
-    std::unordered_map<int, std::vector< std::shared_ptr<PieceRef>>> neighbour_table;
+    std::unordered_map<int, std::vector< PieceRef*>> neighbour_table;
     int max_color_number;
 
     std::vector< CallbackOnSolve* > on_solve;
     std::vector< CallbackOnSolve* > on_new_best;
-
-    std::vector< std::array<std::shared_ptr<PieceRef>, 4> > refs; // pool owning all pieces references
 
     Stats stats;
     ColorAxisCounts rot_checker;

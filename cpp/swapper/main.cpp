@@ -45,8 +45,6 @@ int main(int argc, char* argv[])
     edge::PuzzleDef def = edge::PuzzleDef::Load(def_file, hints_file);
     edge::Board board(&def);
 
-#if 1 // swapper
-
     while (true)
     {
         std::string load_file = "";
@@ -148,8 +146,6 @@ int main(int argc, char* argv[])
         }
 
     }
-
-#endif
 
     return 0;
 }

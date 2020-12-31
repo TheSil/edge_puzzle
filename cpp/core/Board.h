@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <array>
 #include "PuzzleDef.h"
 
 namespace edge {
@@ -18,7 +19,7 @@ public:
 
     struct Loc
     {
-        std::shared_ptr<PieceRef> ref;
+        PieceRef* ref;
         Loc* neighbours[4];
         const HintDef* hint;
         int x, y;
@@ -34,6 +35,7 @@ public:
         std::vector< std::vector<
             Loc > > board;
         std::vector< Loc* > locations_per_id;
+        std::vector< std::array<std::shared_ptr<PieceRef>, 4> > refs; // pool owning all pieces references
     };
 
     Board(const PuzzleDef* def);
@@ -56,7 +58,7 @@ public:
 
     void PutPiece(int id, int x, int y, int dir);
 
-    void PutPiece(Board::Loc* loc, std::shared_ptr<PieceRef> ref);
+    void PutPiece(Board::Loc* loc, PieceRef* ref);
 
     void RemovePiece(Board::Loc* loc);
 
@@ -78,6 +80,8 @@ public:
         Board::Loc* loc2);
 
     Loc* GetLocation(int x, int y);
+
+    PieceRef* GetRef(int id, int dir);
 
 private:
 
