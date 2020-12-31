@@ -368,6 +368,8 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
 
     std::shared_ptr<PieceRef> selected;
     Board::Loc* selected_loc = nullptr;
+    auto& forbidden_map = stack.visited.top().forbidden;
+    auto& locations_map = board.GetLocations();
 
     int any_color = max_color_number; // make last color encode the "ANY" matching pattern
     // TBD we should visit unvisited in random order too ...
@@ -401,10 +403,9 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
         }
 
         int feasible_count = 0;
-        std::shared_ptr<PieceRef> repre;
+        std::shared_ptr<PieceRef>* repre = nullptr;
         for (auto& piece : it->second) {
-            if (!board.GetLocations()[piece->GetId()]) {
-                auto& forbidden_map = stack.visited.top().forbidden;
+            if (!locations_map[piece->GetId()]) {
                 auto it = forbidden_map.find(loc);
                 bool is_forbidden = false;
                 if (it != forbidden_map.end())
@@ -414,7 +415,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
                     }
                 }
                 if (!is_forbidden) {
-                    repre = piece;
+                    repre = &piece;
                     feasible_count += 1;
                 }
             }
@@ -429,7 +430,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
 
         if ((best_score == -1 || score < best_score)) {
             best_score = score;
-            selected = repre;
+            selected = *repre;
             selected_loc = loc;
         }
     }
