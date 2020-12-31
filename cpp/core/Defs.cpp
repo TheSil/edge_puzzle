@@ -47,3 +47,16 @@ void edge::ParseNumberLine(const std::string& line, std::vector<int>& vals)
     }
 }
 
+PieceDef::PieceDef(int id, int east, int south, int west, int north)
+    : id(id)
+{
+    patterns[0] = east;
+    patterns[1] = south;
+    patterns[2] = west;
+    patterns[3] = north;
+}
+
+HintDef::HintDef(int x, int y, int id, int dir)
+    : x(x), y(y), id(id), dir(dir)
+{
+}

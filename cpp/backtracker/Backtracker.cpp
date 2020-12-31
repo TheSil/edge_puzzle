@@ -7,14 +7,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     const std::string& rotations_file)
     : board(board),
     find_all(find_all), connecting(true),
-    counter(0), finalizing_threshold(90),
-    highest_score(0)
+    counter(0), highest_score(0)
 {
-    height = board.GetPuzzleDef()->GetHeight();
-    width = board.GetPuzzleDef()->GetWidth();
-
-    for (int x = 0; x < height; ++x) {
-        for (int y = 0; y < width; ++y) {
+    for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
+        for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             if (!pieces_map || pieces_map->find(std::pair<int, int>(x, y)) != pieces_map->end()) {
                 unvisited.insert(board.GetLocation(x, y));
             }
@@ -528,11 +524,6 @@ bool Backtracker::Backtrack()
     board.RemovePiece(removing);
 
     return true;
-}
-
-int Backtracker::GetCounter()
-{
-    return counter;
 }
 
 Stats& Backtracker::GetStats()

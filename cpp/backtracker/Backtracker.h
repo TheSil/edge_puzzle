@@ -32,9 +32,6 @@ public:
 
     void RegisterOnNewBest(CallbackOnSolve* callback);
 
-    // debug
-    int GetCounter();
-
 private:
     int CheckFeasible(Board::Loc*& feasible_location,
         std::shared_ptr<PieceRef>& feasible_piece);
@@ -57,12 +54,7 @@ private:
     Stack stack;
 
     int counter;
-    int finalizing_threshold;
     int highest_score;
-
-    // cached
-    int height;
-    int width;
 
     std::set<Board::Loc*> unvisited;
     bool find_all;
@@ -80,6 +72,7 @@ private:
 
     Stats stats;
     ColorAxisCounts rot_checker;
+
 };
 
 }

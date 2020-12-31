@@ -126,7 +126,6 @@ int main(int argc, char* argv[])
     int start = (int)time(0);
     int start_absolute = start;
     int score = 0;
-    int prev_counter = 0;
     int max_score = 0;
     printf("score: %i\n", score);
     while (backtracker.Step()) {
@@ -135,10 +134,6 @@ int main(int argc, char* argv[])
         //if (i % 5 == 0) {
         //    Sleep(1);
         //}
-        if (backtracker.GetCounter() != prev_counter) {
-            prev_counter = backtracker.GetCounter();
-            printf("counter: %i \n", prev_counter);
-        }
 
         int now = (int)time(0);
         if (now - start >= 1) {
