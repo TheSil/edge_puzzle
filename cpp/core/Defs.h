@@ -50,8 +50,6 @@ public:
 
     int GetPattern(int pos) const;
 
-    void SetPattern(int pos, int pattern);
-
     int GetDir() const;
 
     void SetDir(int dir);
@@ -61,6 +59,7 @@ public:
 private:
     PieceDef def;
     int dir;
+    uint8_t oriented_patterns[4];
 };
 
 void ParseNumberLine(const std::string& line, std::vector<int>& vals);

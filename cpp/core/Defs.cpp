@@ -7,16 +7,14 @@ using namespace edge;
 PieceRef::PieceRef(PieceDef def, int dir)
     : def(def), dir(dir)
 {
+    for (int i = 0; i < 4; ++i) {
+        oriented_patterns[i] = def.patterns[(i - dir + 4) % 4];
+    }
 }
 
 int PieceRef::GetPattern(int pos) const
 {
-    return def.patterns[(pos - dir + 4) % 4];
-}
-
-void PieceRef::SetPattern(int pos, int pattern)
-{
-    def.patterns[(pos - dir + 4) % 4] = pattern;
+    return oriented_patterns[pos];
 }
 
 int PieceRef::GetDir() const
@@ -27,6 +25,9 @@ int PieceRef::GetDir() const
 void PieceRef::SetDir(int dir)
 {
     this->dir = dir;
+    for (int i = 0; i < 4; ++i) {
+        oriented_patterns[i] = def.patterns[(i - dir + 4) % 4];
+    }
 }
 
 int PieceRef::GetId() const
