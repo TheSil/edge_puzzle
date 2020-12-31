@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core_cpp", "core\core_cpp.vcxproj", "{5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "core\core_cpp.vcxproj", "{5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "backtracker", "backtracker\backtracker.vcxproj", "{6F8384E9-8430-4245-A19E-E648BF5CAAE1}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swapper", "swapper\swapper.
 	ProjectSection(ProjectDependencies) = postProject
 		{5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5} = {5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "backtracker_fixed_path", "backtracker_fixed_path\backtracker_fixed_path.vcxproj", "{E92A700B-57EB-4622-BB2A-D0D47D7269BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +48,14 @@ Global
 		{4E5481E5-D7EB-47BC-8FD1-4A5291A54CB5}.Release|x64.Build.0 = Release|x64
 		{4E5481E5-D7EB-47BC-8FD1-4A5291A54CB5}.Release|x86.ActiveCfg = Release|Win32
 		{4E5481E5-D7EB-47BC-8FD1-4A5291A54CB5}.Release|x86.Build.0 = Release|Win32
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Debug|x64.ActiveCfg = Debug|x64
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Debug|x64.Build.0 = Debug|x64
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Debug|x86.ActiveCfg = Debug|Win32
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Debug|x86.Build.0 = Debug|Win32
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Release|x64.ActiveCfg = Release|x64
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Release|x64.Build.0 = Release|x64
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Release|x86.ActiveCfg = Release|Win32
+		{E92A700B-57EB-4622-BB2A-D0D47D7269BA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
