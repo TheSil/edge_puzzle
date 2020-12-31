@@ -149,13 +149,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Board.cpp" />
+    <ClCompile Include="ColorAxisCounts.cpp" />
     <ClCompile Include="Defs.cpp" />
+    <ClCompile Include="MpfWrapper.cpp" />
     <ClCompile Include="PuzzleDef.cpp" />
+    <ClCompile Include="Stats.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
+    <ClInclude Include="ColorAxisCounts.h" />
     <ClInclude Include="Defs.h" />
+    <ClInclude Include="MpfWrapper.h" />
     <ClInclude Include="PuzzleDef.h" />
+    <ClInclude Include="Stats.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

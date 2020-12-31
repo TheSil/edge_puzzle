@@ -20,18 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backtracker.cpp" />
-    <ClCompile Include="ColorAxisCounts.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MpfWrapper.cpp" />
     <ClCompile Include="Stack.cpp" />
-    <ClCompile Include="Stats.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Backtracker.h" />
-    <ClInclude Include="ColorAxisCounts.h" />
-    <ClInclude Include="MpfWrapper.h" />
     <ClInclude Include="Stack.h" />
-    <ClInclude Include="Stats.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
