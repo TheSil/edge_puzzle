@@ -294,7 +294,6 @@ bool Backtracker::Step()
         int best_score = CheckFeasible(selected_loc, selected_piece);
         if (best_score <= 0) {
             // impossible to place anything here... backtrack
-            stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
             state = State::BACKTRACKING;
 
             return true;
@@ -309,7 +308,6 @@ bool Backtracker::Step()
             !rot_checker.CanBeFinished(selected_piece->GetPattern(2)) ||
             !rot_checker.CanBeFinished(selected_piece->GetPattern(3)) ) {
             LDEBUG("Inconsistent rotation, initating backtrack...\n");
-            stack.backtrack_to = static_cast<int>(stack.visited.size()) - 1;
             state = State::BACKTRACKING;
         }
 
@@ -319,10 +317,7 @@ bool Backtracker::Step()
     case State::BACKTRACKING:
     {
         if (Backtrack()) {
-            if (stack.backtrack_to == stack.visited.size()) {
-                stack.backtrack_to = 0;
-                state = State::SEARCHING;
-            }
+            state = State::SEARCHING;
         }
         else {
             // we should now unwrap beyond hint piece if there is any 

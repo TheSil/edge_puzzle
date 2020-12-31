@@ -28,7 +28,6 @@ public:
     Stack();
 
     std::stack<LevelInfo> visited;
-    int backtrack_to;
     int start_size;
 
 private:

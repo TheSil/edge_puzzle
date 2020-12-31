@@ -7,7 +7,7 @@ bool Stack::IsEmpty() {
     return visited.size() == start_size;
 }
 
-Stack::Stack() : backtrack_to(0), start_size(1)
+Stack::Stack() : start_size(1)
 {
     visited.push(LevelInfo(nullptr)); // root
 }
