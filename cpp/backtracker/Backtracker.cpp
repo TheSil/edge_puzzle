@@ -3,11 +3,13 @@
 
 using namespace edge::backtracker;
 
+const int ANY_COLOR = 0xFF;
+
 Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map, bool find_all,
     const std::string& rotations_file)
     : board(board),
     find_all(find_all), connecting(true),
-    counter(0), highest_score(0)
+    highest_score(0)
 {
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
@@ -83,10 +85,6 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     // create fast access structure for finding all pieces matching
     // given list of patterns
     // TBD - following need refactor + fix to work with specific pieces rotation provided
-    max_color_number = *board.GetPuzzleDef()->GetEdgeColors().rbegin();
-    max_color_number = std::max(max_color_number, *board.GetPuzzleDef()->GetInnerColors().rbegin());
-    max_color_number += 1;
-    int any_color = max_color_number; // make last color encode the "ANY" matching pattern
     for (auto& piece : board.GetPuzzleDef()->GetInner()) {
         for (int dir = 0; dir < 4; ++dir) {
             if (rotations.empty() || rotations[piece.id] == dir)
@@ -94,24 +92,24 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, dir);
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ANY_COLOR, ANY_COLOR)].push_back(ref);
             }
         }
     }
@@ -126,10 +124,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 0); // something, something, 0, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
             }
         }
 
@@ -139,10 +137,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 1); // 0, something, something, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
             }
         }
 
@@ -152,10 +150,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 2); // 0, 0, something, something
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
             }
         }
 
@@ -165,10 +163,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 3); // something, 0, 0, something
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
             }
         }
 
@@ -183,15 +181,15 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 0); // something, something, something, 0
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
             }
         }
 
@@ -201,15 +199,15 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 1); // 0, something, something, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ANY_COLOR, ANY_COLOR)].push_back(ref);
             }
         }
 
@@ -219,15 +217,15 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 2); // something, 0, something, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ANY_COLOR, ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), any_color, any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ANY_COLOR, ANY_COLOR)].push_back(ref);
             }
         }
 
@@ -237,15 +235,15 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 auto ref = board.GetRef(piece.id, 3); // something, something, 0, something 
                 neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
-                neighbour_table[EncodePatterns(any_color, ref->GetPattern(SOUTH), ref->GetPattern(WEST), any_color)].push_back(ref);
-                neighbour_table[EncodePatterns(ref->GetPattern(EAST), any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ref->GetPattern(NORTH))].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ref->GetPattern(SOUTH), ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
+                neighbour_table[EncodePatterns(ref->GetPattern(EAST), ANY_COLOR, ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
 
-                neighbour_table[EncodePatterns(any_color, any_color, ref->GetPattern(WEST), any_color)].push_back(ref);
+                neighbour_table[EncodePatterns(ANY_COLOR, ANY_COLOR, ref->GetPattern(WEST), ANY_COLOR)].push_back(ref);
             }
         }
     }
@@ -260,13 +258,13 @@ int Backtracker::EncodePatterns(int east, int south, int west, int north)
 {
     int encoded = east;
 
-    encoded *= (max_color_number + 1);
+    encoded *= ANY_COLOR + 1;
     encoded += south;
 
-    encoded *= (max_color_number + 1);
+    encoded *= ANY_COLOR + 1;
     encoded += west;
 
-    encoded *= (max_color_number + 1);
+    encoded *= ANY_COLOR + 1;
     encoded += north;
 
     return encoded;
@@ -283,11 +281,7 @@ bool Backtracker::Step()
                 callback->Call(board);
             }
 
-            if (find_all) {
-                counter += 1;
-                printf("%i-th solution found\n", counter);
-            }
-            else {
+            if (!find_all) {
                 // everything already placed, solved...
                 state = State::FINISHED;
                 return false;
@@ -363,7 +357,6 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
     auto& forbidden_map = stack.visited.top().forbidden;
     auto& locations_map = board.GetLocations();
 
-    int any_color = max_color_number; // make last color encode the "ANY" matching pattern
     // TBD we should visit unvisited in random order too ...
     for (auto loc : unvisited) {
         if ((connecting || loc->type == Board::LocType::INNER) && !stack.IsEmpty()) {
@@ -383,10 +376,10 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
         auto& west_loc = loc->neighbours[WEST];
         auto& north_loc = loc->neighbours[NORTH];
 
-        int key = EncodePatterns(!east_loc ? 0 : (east_loc->ref ? east_loc->ref->GetPattern(WEST) : any_color),
-            !south_loc ? 0 : (south_loc->ref ? south_loc->ref->GetPattern(NORTH) : any_color),
-            !west_loc ? 0 : (west_loc->ref ? west_loc->ref->GetPattern(EAST) : any_color),
-            !north_loc ? 0 : (north_loc->ref ? north_loc->ref->GetPattern(SOUTH) : any_color));
+        int key = EncodePatterns(!east_loc ? 0 : (east_loc->ref ? east_loc->ref->GetPattern(WEST) : ANY_COLOR),
+            !south_loc ? 0 : (south_loc->ref ? south_loc->ref->GetPattern(NORTH) : ANY_COLOR),
+            !west_loc ? 0 : (west_loc->ref ? west_loc->ref->GetPattern(EAST) : ANY_COLOR),
+            !north_loc ? 0 : (north_loc->ref ? north_loc->ref->GetPattern(SOUTH) : ANY_COLOR));
 
         auto it = neighbour_table.find(key);
         if (it == neighbour_table.end())
@@ -414,14 +407,13 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
 
         }
 
-        int score = feasible_count;
-        if (score == 0) {
+        if (feasible_count == 0) {
             // impossible to place anything here, end asap
             return 0;
         }
 
-        if ((best_score == -1 || score < best_score)) {
-            best_score = score;
+        if ((best_score == -1 || feasible_count < best_score)) {
+            best_score = feasible_count;
             selected = repre;
             selected_loc = loc;
         }
