@@ -15,6 +15,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swapper", "swapper\swapper.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "backtracker_fixed_path", "backtracker_fixed_path\backtracker_fixed_path.vcxproj", "{E92A700B-57EB-4622-BB2A-D0D47D7269BA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5} = {5BFF9AD9-F6A1-43B2-AD85-672EE50AAFB5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
