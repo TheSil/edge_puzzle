@@ -26,7 +26,7 @@ class BoardUi:
         pygame.display.set_caption('Puzzle')
         # make the piece width dynamic to fill about the same portion of screen always
         max_dim = max(self.board.puzzle_def.width, self.board.puzzle_def.height)
-        self.piece_width = ((700//max_dim)//4)*4
+        self.piece_width = ((800//max_dim)//4)*4
 
         self.DISPLAY = pygame.display.set_mode((self.piece_width * self.board.puzzle_def.width,
                                                 self.piece_width * self.board.puzzle_def.height))
