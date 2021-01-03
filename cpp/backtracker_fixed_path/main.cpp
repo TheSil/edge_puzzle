@@ -50,13 +50,14 @@ public:
     
     void Call(edge::Board& board)
     {
-        printf("SOLVED!\n");
+        printf("SOLVED! (%i)\n", counter + 1);
         if (counter < 20)
         {// safety mechanism, do not save more than certain number of solutions...
             std::stringstream ss;
-            ss << prefix << "_save_" << "solved_" << ++counter << ".csv";
+            ss << prefix << "_save_" << "solved_" << counter+1 << ".csv";
             board.Save(ss.str());
         }
+        ++counter;
 
     }
 
@@ -122,7 +123,7 @@ int main(int argc, char* argv[])
     backtracker.RegisterOnNewBest(&newbest_callback);
 
     int i = 0;
-    int total = 0;
+    long long total = 0;
     int start = (int)time(0);
     int start_absolute = start;
     int score = 0;
@@ -155,7 +156,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    printf("finished in %i sec, total iterations: %i\n", (int)time(0) - start_absolute, total);
+    printf("finished in %i sec, total iterations: %lli\n", (int)time(0) - start_absolute, total);
     std::string explAbsLast, explAbs, explMax, explRatio;
     backtracker.GetStats().GetExploredAbsLast().PrintExp(explAbsLast);
     backtracker.GetStats().GetExploredAbs().PrintExp(explAbs);

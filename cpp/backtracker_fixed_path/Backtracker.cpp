@@ -38,6 +38,21 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
             vals.resize(2, 0);
             rotations[vals[0]] = vals[1];
         }
+
+        // check consistency of rotations
+        ColorAxisCounts checker;
+        checker.Init(board.GetPuzzleDef());
+        for (auto& item : rotations) {
+            PieceRef* ref = board.GetRef(item.first, item.second);
+            checker.Place(ref->GetPattern(EAST), ref->GetPattern(SOUTH), ref->GetPattern(WEST), ref->GetPattern(NORTH));
+        }
+
+        if (checker.IsFinished()) {
+            printf("Rotations are OK\n");
+        }
+        else {
+            printf("Rotations are INCONSISTENT!\n");
+        }       
     }
 
     for (auto& piece : board.GetPuzzleDef()->GetAll()) {
@@ -56,32 +71,35 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     rot_checker.Init(board.GetPuzzleDef());
 
     // hints
-    for (auto& hint : board.GetPuzzleDef()->GetHints()) {
-        int dir = (hint.dir != -1) ? hint.dir : 0;
-        board.PutPiece(hint.id, hint.x, hint.y, dir);
-        rot_checker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
-            board.GetLocation(hint.x, hint.y)->ref->GetPattern(1), 
-            board.GetLocation(hint.x, hint.y)->ref->GetPattern(2), 
-            board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
+    if (rotations_file.empty()) // for now, this is how we ignore hints argument if rotations are being checked
+    {
+        for (auto& hint : board.GetPuzzleDef()->GetHints()) {
+            int dir = (hint.dir != -1) ? hint.dir : 0;
+            board.PutPiece(hint.id, hint.x, hint.y, dir);
+            rot_checker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
+                board.GetLocation(hint.x, hint.y)->ref->GetPattern(1),
+                board.GetLocation(hint.x, hint.y)->ref->GetPattern(2),
+                board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
 
-        std::vector< PieceRef* > to_erase;
+            std::vector< PieceRef* > to_erase;
 
-        to_erase.clear();
-        for (auto& ref : unplaced_pieces) {
-            if (ref->GetId() == hint.id) {
-                to_erase.push_back(ref);
+            to_erase.clear();
+            for (auto& ref : unplaced_pieces) {
+                if (ref->GetId() == hint.id) {
+                    to_erase.push_back(ref);
+                }
             }
-        }
-        for (auto& ref : to_erase) {
-            unplaced_pieces.erase(ref);
-        }
+            for (auto& ref : to_erase) {
+                unplaced_pieces.erase(ref);
+            }
 
-        auto loc = board.GetLocation(hint.x, hint.y);
-        stack.visited.push(Stack::LevelInfo(pieces_count));
-        stack.start_size++;
+            auto loc = board.GetLocation(hint.x, hint.y);
+            stack.visited.push(Stack::LevelInfo(pieces_count));
+            stack.start_size++;
 
-        path.push_back(loc);
-        connected_locations.push_back(std::vector<Board::Loc*>());
+            path.push_back(loc);
+            connected_locations.push_back(std::vector<Board::Loc*>());
+        }
     }
 
     highest_score = static_cast<int>(stack.visited.size());
@@ -261,7 +279,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     // set path
 
     // row scan
-#if 1
+#if 0
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             auto loc = board.GetLocation(x, y);
@@ -273,7 +291,19 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 #endif
 
 #if 0
-    // row scan, second half reverted
+    // column scan
+    for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
+        for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+    }
+#endif
+
+#if 0
+    // row scan, no jumping
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             auto loc = board.GetLocation(x, y);
@@ -281,8 +311,12 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
                 path.push_back(loc);
             }
         }
+
+        if (x % 2 == 1) {
+            std::reverse(path.end() - board.GetPuzzleDef()->GetWidth(), path.end());
+        }
     }
-    std::reverse(path.begin() + path.size()/2, path.end());
+
 #endif
 
 #if 0
@@ -306,8 +340,24 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 #endif
 
 #if 0
+    // diagonals
+    for (int y0 = 0; y0 < 2 * board.GetPuzzleDef()->GetWidth(); ++y0) {
+        for (int t = 0; t <= y0; ++t) {
+            int x = t;
+            int y = y0 - t;
+            if (y < board.GetPuzzleDef()->GetWidth() && x < board.GetPuzzleDef()->GetHeight()) {
+                auto loc = board.GetLocation(x, y);
+                if (!loc->hint) {
+                    path.push_back(loc);
+                }
+            }
+        }
+    }
+#endif
+
+#if 0
     // going from outer to inner
-    for (int t = 0; t < board.GetPuzzleDef()->GetWidth()/2; ++t) {
+    for (int t = 0; t < board.GetPuzzleDef()->GetWidth() / 2; ++t) {
         int x, y;
 
         // (t,t) -> (t,w-t-2)
@@ -326,11 +376,11 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
             if (!loc->hint) {
                 path.push_back(loc);
             }
-        }        
+        }
 
         // (h-t-1,w-t-1) -> (h-t-1,t+1)
         x = board.GetPuzzleDef()->GetHeight() - t - 1;
-        for (y = board.GetPuzzleDef()->GetWidth() - t - 1; y >= t+1; --y) {
+        for (y = board.GetPuzzleDef()->GetWidth() - t - 1; y >= t + 1; --y) {
             auto loc = board.GetLocation(x, y);
             if (!loc->hint) {
                 path.push_back(loc);
@@ -339,38 +389,10 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 
         // (h-t-1,t) -> (t+1,t)
         y = t;
-        for (x = board.GetPuzzleDef()->GetHeight() - t - 1; x >= t+1; --x) {
+        for (x = board.GetPuzzleDef()->GetHeight() - t - 1; x >= t + 1; --x) {
             auto loc = board.GetLocation(x, y);
             if (!loc->hint) {
                 path.push_back(loc);
-            }
-        }
-    }
-#endif
-
-#if 0
-    // column scan
-    for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
-        for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
-            auto loc = board.GetLocation(x, y);
-            if (!loc->hint) {
-                path.push_back(loc);
-            }
-        }
-    }
-#endif
-
-#if 0
-    // diagonals
-    for (int y0 = 0; y0 < 2*board.GetPuzzleDef()->GetWidth(); ++y0) {
-        for (int t = 0; t <= y0; ++t) {
-            int x = t;
-            int y = y0 - t;
-            if (y < board.GetPuzzleDef()->GetWidth() && x < board.GetPuzzleDef()->GetHeight()) {
-                auto loc = board.GetLocation(x, y);
-                if (!loc->hint) {
-                    path.push_back(loc);
-                }
             }
         }
     }
@@ -396,6 +418,112 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
     }
 #endif
+
+#if 0
+    // row scan, second half reverted
+    for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
+        for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+    }
+    std::reverse(path.begin() + path.size()/2, path.end());
+#endif
+
+#if 0
+    // going from inner to outer - reversed
+    for (int t = 0; t < board.GetPuzzleDef()->GetWidth() / 2; ++t) {
+        int x, y;
+
+        // (t,t) -> (t,w-t-2)
+        x = t;
+        for (y = t; y <= board.GetPuzzleDef()->GetWidth() - t - 2; ++y) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        // (t,w-t-1) -> (h-t-2,w-t-1)
+        y = board.GetPuzzleDef()->GetWidth() - t - 1;
+        for (x = t; x <= board.GetPuzzleDef()->GetHeight() - t - 2; ++x) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        // (h-t-1,w-t-1) -> (h-t-1,t+1)
+        x = board.GetPuzzleDef()->GetHeight() - t - 1;
+        for (y = board.GetPuzzleDef()->GetWidth() - t - 1; y >= t + 1; --y) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        // (h-t-1,t) -> (t+1,t)
+        y = t;
+        for (x = board.GetPuzzleDef()->GetHeight() - t - 1; x >= t + 1; --x) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+    }
+    std::reverse(path.begin(), path.end());
+#endif
+
+#if 1
+    // around the corner
+    for (int y0 = 0; y0 < board.GetPuzzleDef()->GetWidth(); ++y0) {
+        for (int x = 0; x < y0; ++x) {
+            int y = y0;
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        int x = y0;
+        for (int y = y0; y >= 0; y--) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+    }
+#endif
+
+#if 0
+    // around the corner - no jumps
+    for (int y0 = 0; y0 < board.GetPuzzleDef()->GetWidth(); ++y0) {
+        
+        for (int x = 0; x < y0; ++x) {
+            int y = y0;
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        int x = y0;
+        for (int y = y0; y >= 0; y--) {
+            auto loc = board.GetLocation(x, y);
+            if (!loc->hint) {
+                path.push_back(loc);
+            }
+        }
+
+        if (y0 % 2 == 0) {
+            std::reverse(path.end() - 2*y0-1, path.end());
+        }
+    }
+
+#endif
+
 
     int x = 0;
 
@@ -530,6 +658,19 @@ bool Backtracker::Step()
                         auto& west_loc = loc->neighbours[WEST];
                         auto& north_loc = loc->neighbours[NORTH];
 
+#if 1
+                        int neighbour_count = 0;
+                        neighbour_count += (east_loc && east_loc->ref) ? 1 : 0;
+                        neighbour_count += (south_loc && south_loc->ref) ? 1 : 0;
+                        neighbour_count += (west_loc && west_loc->ref) ? 1 : 0;
+                        neighbour_count += (north_loc && north_loc->ref) ? 1 : 0;
+
+                        if (neighbour_count == 0 && path.size() > 0) {
+                            // only add locations that are connected
+                            continue;
+                        }
+#endif
+
                         int key = EncodePatterns(!east_loc ? 0 : (east_loc->ref ? east_loc->ref->GetPattern(WEST) : ANY_COLOR),
                             !south_loc ? 0 : (south_loc->ref ? south_loc->ref->GetPattern(NORTH) : ANY_COLOR),
                             !west_loc ? 0 : (west_loc->ref ? west_loc->ref->GetPattern(EAST) : ANY_COLOR),
@@ -564,6 +705,13 @@ bool Backtracker::Step()
 
             int idx = rand() % min_locs.size();
             path.push_back(min_locs[idx]);
+
+            // debug
+            printf("path updated: ");
+            for (auto& loc : path) {
+                printf(",(%i, %i)", loc->x, loc->y);
+            }
+            printf("\n");
         }
 
         PieceRef* selected_piece = nullptr;

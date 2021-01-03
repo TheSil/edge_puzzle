@@ -19,6 +19,8 @@ public:
 
     bool CanBeFinished(int k);
 
+    bool IsFinished();
+
 private:
 
     void InitColor(int k);

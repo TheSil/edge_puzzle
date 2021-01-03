@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "ColorAxisCounts.h"
 
 using namespace edge::backtracker;
@@ -41,6 +42,14 @@ void ColorAxisCounts::Unplace(int k0, int k1, int k2, int k3)
 bool ColorAxisCounts::CanBeFinished(int k)
 {
     return colors_available[k] >= ABS(colors_horizontal[k]) + ABS(colors_vertical[k]);
+}
+
+bool ColorAxisCounts::IsFinished()
+{
+    bool finished = std::all_of(colors_horizontal.begin(), colors_horizontal.end(), [](int i) { return i == 0; });
+    finished = finished && std::all_of(colors_vertical.begin(), colors_vertical.end(), [](int i) { return i == 0; });
+    finished = finished && std::all_of(colors_available.begin(), colors_available.end(), [](int i) { return i == 0; });
+    return finished;
 }
 
 void ColorAxisCounts::InitColor(int k)
