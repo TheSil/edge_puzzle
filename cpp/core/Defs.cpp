@@ -22,14 +22,6 @@ int PieceRef::GetDir() const
     return dir;
 }
 
-void PieceRef::SetDir(int dir)
-{
-    this->dir = dir;
-    for (int i = 0; i < 4; ++i) {
-        oriented_patterns[i] = def.patterns[(i - dir + 4) % 4];
-    }
-}
-
 int PieceRef::GetId() const
 {
     return def.id;

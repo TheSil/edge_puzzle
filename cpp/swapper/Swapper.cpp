@@ -267,8 +267,8 @@ bool Swapper::DoQuickSwapsEdges(int score_to_beat, std::vector<
             }
 
             board.SwapLocations(loc1, loc2);
-            loc1->ref->SetDir(orig_dir1);
-            loc2->ref->SetDir(orig_dir2);
+            board.ChangeDir(loc1, orig_dir1);
+            board.ChangeDir(loc2, orig_dir2);
         }
     }
 
@@ -308,8 +308,8 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
 
             for (int dir1 = 0; dir1 < 4; ++dir1) {
                 for (int dir2 = 0; dir2 < 4; ++dir2) {
-                    loc1->ref->SetDir(dir1);
-                    loc2->ref->SetDir(dir2);
+                    board.ChangeDir(loc1, dir1);
+                    board.ChangeDir(loc2, dir2);
                     int piece_score_after = board.GetScore(loc1);
                     piece_score_after += board.GetScore(loc2);
                     if (HaveCommonEdge(loc1, loc2)) {
@@ -335,8 +335,8 @@ bool Swapper::DoQuickSwapsInners(int score_to_beat, std::vector<
             }
 
             board.SwapLocations(loc1, loc2);
-            loc1->ref->SetDir(orig_dir1);
-            loc2->ref->SetDir(orig_dir2);
+            board.ChangeDir(loc1, orig_dir1);
+            board.ChangeDir(loc2, orig_dir2);
         }
     }
 

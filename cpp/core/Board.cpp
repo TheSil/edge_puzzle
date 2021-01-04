@@ -248,16 +248,16 @@ void Board::Randomize()
                 auto& current_hint_loc = state.locations_per_id[hint_id];
                 SwapLocations(current_hint_loc, &loc);
                 if (loc.hint->dir != -1) {
-                    loc.ref->SetDir((loc.hint->dir));
+                    ChangeDir(&loc, loc.hint->dir);
                 }
             }
         }
     }
 }
 
-inline void AdjustDirBorderSafe(Board::Loc* loc, int dir)
+void Board::AdjustDirBorderSafe(Board::Loc* loc, int dir)
 {
-    if (loc->ref) loc->ref->SetDir(dir);
+    if (loc->ref) ChangeDir(loc, dir);
 }
 
 void Board::AdjustDirBorder()
@@ -314,7 +314,7 @@ void Board::PutPiece(int id, int x, int y, int dir)
     if (state.locations_per_id[id]) {
         // alrady placed, swap positions
         SwapLocations(state.locations_per_id[id], &state.board[x][y]);
-        state.board[x][y].ref->SetDir(dir);
+        ChangeDir(&state.board[x][y], dir);
     } else {
         state.board[x][y].ref = GetRef(id, dir);
     }
@@ -326,7 +326,7 @@ void Board::PutPiece(Board::Loc* loc, PieceRef* ref)
     if (state.locations_per_id[ref->GetId()]) {
         // alrady placed, swap positions
         SwapLocations(state.locations_per_id[ref->GetId()], loc);
-        loc->ref->SetDir(ref->GetDir());
+        ChangeDir(loc, ref->GetDir());
     }
     else {
         loc->ref = ref;
@@ -412,6 +412,12 @@ PieceRef* Board::GetRef(int id, int dir)
     return state.refs[id][dir].get();
 }
 
+void Board::ChangeDir(Board::Loc* loc, int dir)
+{
+    int id = loc->ref->GetId();
+    loc->ref = GetRef(id, dir);
+}
+
 bool Board::AdjustDirInner(Loc* loc)
 {
     if (!loc->ref || loc->hint) {
@@ -422,14 +428,14 @@ bool Board::AdjustDirInner(Loc* loc)
     int best_dir = 0, best_score = 0, dir_offset = 0;
     for (dir_offset = 0; dir_offset < 4; ++dir_offset) {
         int dir = (start_dir + dir_offset) % 4;
-        loc->ref->SetDir(dir);
+        ChangeDir(loc,dir);
         int score = GetScore(loc);
         if (score > best_score) {
             best_score = score;
             best_dir = dir;
         }
     }
-    loc->ref->SetDir(best_dir);
+    ChangeDir(loc, best_dir);
 
     return (best_dir != start_dir);
 }

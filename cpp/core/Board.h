@@ -83,6 +83,8 @@ public:
 
     PieceRef* GetRef(int id, int dir);
 
+    void ChangeDir(Board::Loc* loc, int dir);
+
 private:
 
     void UpdateLinks();
@@ -90,6 +92,8 @@ private:
     void UpdateIds();
 
     bool AdjustDirInner(Loc* loc);
+
+    void AdjustDirBorderSafe(Loc* loc, int dir);
 
 private:
 

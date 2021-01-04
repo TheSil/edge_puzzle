@@ -42,8 +42,6 @@ public:
 
     int GetDir() const;
 
-    void SetDir(int dir);
-
     int GetId() const;
 
 private:
