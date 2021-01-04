@@ -68,7 +68,9 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     stats.Init(board);
+#ifdef ROTATION_CHECK
     rot_checker.Init(board.GetPuzzleDef());
+#endif
 
     // hints
     if (true/*rotations_file.empty()*/) // for now, this is how we ignore hints argument if rotations are being checked
@@ -76,10 +78,12 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         for (auto& hint : board.GetPuzzleDef()->GetHints()) {
             int dir = (hint.dir != -1) ? hint.dir : 0;
             board.PutPiece(hint.id, hint.x, hint.y, dir);
+#ifdef ROTATION_CHECK
             rot_checker.Place(board.GetLocation(hint.x, hint.y)->ref->GetPattern(0),
                 board.GetLocation(hint.x, hint.y)->ref->GetPattern(1),
                 board.GetLocation(hint.x, hint.y)->ref->GetPattern(2),
                 board.GetLocation(hint.x, hint.y)->ref->GetPattern(3));
+#endif
 
             std::vector< PieceRef* > to_erase;
 
@@ -736,6 +740,7 @@ bool Backtracker::Step()
         unplaced_pieces.erase(selected_piece);
 
         // if inconsistent rotations, backtrack...
+#ifdef ROTATION_CHECK
         if (!rot_checker.CanBeFinished(selected_piece->GetPattern(0)) ||
             !rot_checker.CanBeFinished(selected_piece->GetPattern(1)) ||
             !rot_checker.CanBeFinished(selected_piece->GetPattern(2)) ||
@@ -743,6 +748,7 @@ bool Backtracker::Step()
             LDEBUG("Inconsistent rotation, initating backtrack...\n");
             state = State::BACKTRACKING;
         }
+#endif
 
         return true;
     }
@@ -838,10 +844,12 @@ void Backtracker::Place(Board::Loc* loc, PieceRef* ref)
         ref->GetPattern(0), ref->GetPattern(1), ref->GetPattern(2), ref->GetPattern(3),
         ref->GetDir(), static_cast<int>(stack.visited.size()) + 1);
     board.PutPiece(loc, ref);
+#ifdef ROTATION_CHECK
     rot_checker.Place(ref->GetPattern(0),
         ref->GetPattern(1),
         ref->GetPattern(2),
         ref->GetPattern(3));
+#endif
     switch (loc->type)
     {
     case Board::LocType::CORNER:
@@ -910,10 +918,12 @@ bool Backtracker::Backtrack()
     else {
         stats.UpdateUnplacedInner(1);
     }
+#ifdef ROTATION_CHECK
     rot_checker.Unplace(removing->ref->GetPattern(0),
         removing->ref->GetPattern(1),
         removing->ref->GetPattern(2),
         removing->ref->GetPattern(3));
+#endif
     board.RemovePiece(removing);
 
     return true;

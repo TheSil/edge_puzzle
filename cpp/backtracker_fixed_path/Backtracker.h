@@ -52,7 +52,9 @@ private:
     State state;
     Stack stack;
     Stats stats;
+#ifdef ROTATION_CHECK
     ColorAxisCounts rot_checker;
+#endif
     std::vector<Board::Loc*> path; 
     std::vector < std::vector<Board::Loc*>> connected_locations; // cached locations for given position
     std::vector< int > scores; // cached scores according to path
