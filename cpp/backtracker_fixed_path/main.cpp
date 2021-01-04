@@ -133,6 +133,9 @@ int main(int argc, char* argv[])
 
         total += 1;
         i += 1;
+        //if (i % 5 == 0) {
+        //    Sleep(1);
+        //}
 
         int now = (int)time(0);
         if (now - start >= 1) {
@@ -143,7 +146,7 @@ int main(int argc, char* argv[])
             backtracker.GetStats().GetExploredMax().PrintExp(explMax);
 
             score = board.GetScore();
-            printf("max_score: %i, curr_score: %i, iters: %i, "
+             printf("max_score: %i, curr_score: %i, iters: %i, "
                 "explAbsLast: %s, explAbs: %s, explRatio: %s, explMax: %s\n", 
                 newbest_callback.max_score, score, i, explAbsLast.c_str(), explAbs.c_str(), explRatio.c_str(), explMax.c_str());
 

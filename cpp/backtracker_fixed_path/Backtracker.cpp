@@ -24,6 +24,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     }
 
     pieces_count = board.GetPuzzleDef()->GetPieceCount();
+    stack.visited.top().forbidden.resize(pieces_count);
 
     std::map<int, int> rotations;
     if (!rotations_file.empty()) {
@@ -108,6 +109,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
         }
     }
 
+    highest_score = static_cast<int>(stack.visited.size());
     board.AdjustDirBorder();
 
     // create fast access structure for finding all pieces matching
@@ -556,7 +558,7 @@ bool Backtracker::Step()
     {
     case State::SEARCHING:
     {
-        if (stack.visited.size() == pieces_count) {
+        if (stack.visited.size() - 1 == pieces_count) {
             for (auto& callback : on_solve) {
                 callback->Call(board);
             }
@@ -646,7 +648,7 @@ bool Backtracker::Step()
         }
 
         // this branch will be called at most once per number of pieces, not time critical
-        if (path.size() < stack.visited.size() + 1) {
+        if (path.size() < stack.visited.size()) {
             // path not defined, we create our own as we go
 
             // we check all connected pieces, and find such that it contains least feasible possibilities
@@ -753,8 +755,8 @@ bool Backtracker::Step()
         else {
             // we should now unwrap beyond hint piece if there is any 
             // this forces all pieces beyound it to be counted properly
-            if (stack.visited.size() > 0) {
-                stats.Update(static_cast<int>(stack.visited.size()));
+            if (stack.visited.size() > 1) {
+                stats.Update(static_cast<int>(stack.visited.size()) - 1);
             }
 
             state = State::FINISHED;
@@ -784,7 +786,7 @@ int Backtracker::CheckFeasible(Board::Loc*& feasible_location,
     auto& locations_map = board.GetLocations();
 
     // TBD we should visit unvisited in random order too ...
-    auto& loc = path[stack.visited.size()];
+    auto& loc = path[stack.visited.size() - 1];
 
     auto& east_loc = loc->neighbours[EAST];
     auto& south_loc = loc->neighbours[SOUTH];
@@ -858,7 +860,7 @@ void Backtracker::Place(Board::Loc* loc, PieceRef* ref)
     stack.visited.push(Stack::LevelInfo(pieces_count));
 
     // update scores cache (specific for position in path)
-    if (scores.size() < stack.visited.size()) {
+    if (scores.size() < stack.visited.size() - 1) {
         int prev_score = scores.empty() ? 0 : scores.back();
         int neighbours = 0;
         for (int i = 0; i < 4; ++i) {
@@ -883,9 +885,9 @@ bool Backtracker::Backtrack()
         return false;
     }
 
-    Board::Loc* removing = path[stack.visited.size() - 1];
+    Board::Loc* removing = path[stack.visited.size() - 2];
     stack.visited.pop();
-    int stack_pos = static_cast<int>(stack.visited.size() + 1);
+    int stack_pos = static_cast<int>(stack.visited.size());
 
     // update statistics
     stats.Update(stack_pos);
@@ -894,7 +896,7 @@ bool Backtracker::Backtrack()
         removing->ref->GetId(), 
         removing->x, removing->y, 
         removing->ref->GetPattern(0), removing->ref->GetPattern(1), removing->ref->GetPattern(2), removing->ref->GetPattern(3),
-        static_cast<int>(stack.visited.size() + 1));
+        static_cast<int>(stack.visited.size()));
 
     stack.visited.top().forbidden[removing->ref->GetId()][removing->ref->GetDir()] = true;
 
