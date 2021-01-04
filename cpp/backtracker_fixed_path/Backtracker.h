@@ -55,6 +55,7 @@ private:
     ColorAxisCounts rot_checker;
     std::vector<Board::Loc*> path; 
     std::vector < std::vector<Board::Loc*>> connected_locations; // cached locations for given position
+    std::vector< int > scores; // cached scores according to path
     int pieces_count;
 
     std::set< PieceRef* > unplaced_pieces;

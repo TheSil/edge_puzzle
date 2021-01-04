@@ -71,7 +71,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     rot_checker.Init(board.GetPuzzleDef());
 
     // hints
-    if (rotations_file.empty()) // for now, this is how we ignore hints argument if rotations are being checked
+    if (true/*rotations_file.empty()*/) // for now, this is how we ignore hints argument if rotations are being checked
     {
         for (auto& hint : board.GetPuzzleDef()->GetHints()) {
             int dir = (hint.dir != -1) ? hint.dir : 0;
@@ -99,6 +99,13 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
 
             path.push_back(loc);
             connected_locations.push_back(std::vector<Board::Loc*>());
+
+            int prev_score = scores.empty() ? 0 : scores.back();
+            int neighbours = 0;
+            for (int i = 0; i < 4; ++i) {
+                neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
+            }
+            scores.push_back(prev_score + neighbours);
         }
     }
 
@@ -279,7 +286,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     // set path
 
     // row scan
-#if 0
+#if 1
     for (int x = 0; x < board.GetPuzzleDef()->GetHeight(); ++x) {
         for (int y = 0; y < board.GetPuzzleDef()->GetWidth(); ++y) {
             auto loc = board.GetLocation(x, y);
@@ -476,7 +483,7 @@ Backtracker::Backtracker(Board& board, std::set<std::pair<int, int>>* pieces_map
     std::reverse(path.begin(), path.end());
 #endif
 
-#if 1
+#if 0
     // around the corner
     for (int y0 = 0; y0 < board.GetPuzzleDef()->GetWidth(); ++y0) {
         for (int x = 0; x < y0; ++x) {
@@ -850,23 +857,26 @@ void Backtracker::Place(Board::Loc* loc, PieceRef* ref)
         break;
     }
 
-    int prev_score = stack.visited.top().score;
     stack.visited.push(Stack::LevelInfo(pieces_count));
-    int neighbours = 0;
-    for (int i = 0; i < 4; ++i) {
-        neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
-    }
-    int new_score = prev_score + neighbours;
-    stack.visited.top().score = new_score;
 
-
-    if (new_score > highest_score) {
-        highest_score = new_score;
-
-        for (auto& callback : on_new_best) {
-            callback->Call(board);
+    // update scores cache (specific for position in path)
+    if (scores.size() < stack.visited.size() - 1) {
+        int prev_score = scores.empty() ? 0 : scores.back();
+        int neighbours = 0;
+        for (int i = 0; i < 4; ++i) {
+            neighbours += (loc->neighbours[i] && loc->neighbours[i]->ref) ? 1 : 0;
         }
-    }        
+        int new_score = prev_score + neighbours;
+        scores.push_back(new_score);
+
+        if (new_score > highest_score) {
+            highest_score = new_score;
+
+            for (auto& callback : on_new_best) {
+                callback->Call(board);
+            }
+        }
+    }    
 }
 
 bool Backtracker::Backtrack()

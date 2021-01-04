@@ -14,9 +14,8 @@ public:
 
     struct LevelInfo {
         std::vector< std::array<bool, 4> > forbidden;
-        int score;
 
-        LevelInfo(int pieces_count) : score(0)
+        LevelInfo(int pieces_count)
         {
             forbidden.resize(pieces_count + 1);
         }
