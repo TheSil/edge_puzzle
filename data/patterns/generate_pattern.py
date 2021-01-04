@@ -20,13 +20,24 @@ class MultiSquarePattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
-        dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
-        dwg.add(dwg.rect((30, 30), (60, 60), fill=self.color2))
-        dwg.add(dwg.rect((15, 15), (30, 30), fill=self.color2))
-        dwg.add(dwg.rect((75, 15), (30, 30), fill=self.color2))
-        dwg.add(dwg.rect((15, 75), (30, 30), fill=self.color2))
-        dwg.add(dwg.rect((75, 75), (30, 30), fill=self.color2))
+        dim = 120
+        inner_rect_dim = 55
+        border_rect_dim = 25
+        border_rect_offset = 18
+
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
+        dwg.add(dwg.rect((0, 0), (dim, dim), fill=self.color1))
+        dwg.add(dwg.rect(((dim - inner_rect_dim)//2, (dim - inner_rect_dim)//2),
+                         (inner_rect_dim, inner_rect_dim),
+                         fill=self.color2))
+        dwg.add(dwg.rect((border_rect_offset, border_rect_offset),
+                         (border_rect_dim, border_rect_dim), fill=self.color2))
+        dwg.add(dwg.rect((dim - border_rect_dim - border_rect_offset, border_rect_offset),
+                         (border_rect_dim, border_rect_dim), fill=self.color2))
+        dwg.add(dwg.rect((border_rect_offset, dim - border_rect_dim - border_rect_offset),
+                         (border_rect_dim, border_rect_dim), fill=self.color2))
+        dwg.add(dwg.rect((dim - border_rect_dim - border_rect_offset, dim - border_rect_dim - border_rect_offset),
+                         (border_rect_dim, border_rect_dim), fill=self.color2))
         dwg.save()
 
 class PlusPattern:
@@ -35,11 +46,23 @@ class PlusPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
-        dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
-        dwg.add(dwg.circle((60, 60), 50, fill=self.color2))
-        dwg.add(dwg.rect((50, 30), (20, 60), fill=self.color1))
-        dwg.add(dwg.rect((30, 50), (60, 20), fill=self.color1))
+        dim = 120
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
+
+        R = 46
+        rect_width = 58
+        rect_height = 18
+
+        dwg.add(dwg.rect((0, 0), (dim, dim),
+                         fill=self.color1))
+        dwg.add(dwg.circle((dim//2, dim//2), R,
+                           fill=self.color2))
+        dwg.add(dwg.rect(((dim - rect_height)//2, (dim - rect_width)//2),
+                          (rect_height, rect_width),
+                         fill=self.color1))
+        dwg.add(dwg.rect(((dim - rect_width)//2, (dim - rect_height)//2),
+                          (rect_width, rect_height),
+                         fill=self.color1))
         dwg.save()
 
 class RoundCrossPattern:
@@ -48,15 +71,26 @@ class RoundCrossPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
-        dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
+        dim = 120
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
+        dwg.add(dwg.rect((0, 0), (dim, dim), fill=self.color1))
 
-        dwg.add(dwg.circle((30, 30), 18, fill=self.color2))
-        dwg.add(dwg.circle((90, 30), 18, fill=self.color2))
-        dwg.add(dwg.circle((30, 90), 18, fill=self.color2))
-        dwg.add(dwg.circle((90, 90), 18, fill=self.color2))
-        dwg.add(dwg.rect((20, 47.5), (80, 25), fill=self.color2, transform="rotate(45,60,60)"))
-        dwg.add(dwg.rect((20, 47.5), (80, 25), fill=self.color2, transform="rotate(-45,60,60)"))
+        R = 17
+        R_offset = 35
+        rect_width = 18
+
+        dwg.add(dwg.circle((R_offset, R_offset), R, fill=self.color2))
+        dwg.add(dwg.circle((dim - R_offset, R_offset), R, fill=self.color2))
+        dwg.add(dwg.circle((R_offset, dim - R_offset), R, fill=self.color2))
+        dwg.add(dwg.circle((dim - R_offset, dim - R_offset), R, fill=self.color2))
+        dwg.add(dwg.rect((R_offset-R, dim//2 - rect_width//2),
+                         (dim-2*(R_offset-R), rect_width),
+                         fill=self.color2,
+                         transform="rotate(45,60,60)"))
+        dwg.add(dwg.rect((R_offset-R, dim//2 - rect_width//2),
+                         (dim-2*(R_offset-R), rect_width),
+                         fill=self.color2,
+                         transform="rotate(-45,60,60)"))
         dwg.save()
 
 class CrossPattern:
@@ -65,10 +99,20 @@ class CrossPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
-        dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
+        dim = 120
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
+        dwg.add(dwg.rect((0, 0), (dim, dim), fill=self.color1))
 
-        points = ((15,15),(45,15),(60, 45),(60, 60),(45, 60),(15,45))
+        border_offset = 20
+        offset1 = 14
+        offset2 = 13
+        points = ((border_offset,border_offset),
+                  (dim//2-offset1,border_offset),
+                  (dim//2, dim//2-offset2),
+                  (dim//2, dim//2),
+                  (dim//2-offset2, dim//2),
+                  (border_offset,dim//2-offset1))
+
         dwg.add(dwg.polygon(points, fill=self.color2))
         dwg.add(dwg.polygon(points, fill=self.color2, transform="rotate(90,60,60)"))
         dwg.add(dwg.polygon(points, fill=self.color2, transform="rotate(180,60,60)"))
@@ -139,18 +183,34 @@ class CircleSubtractPattern2:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
+        dim = 120
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
         clip_path = dwg.defs.add(dwg.clipPath(id='clipsq'))
-        clip_path.add(dwg.rect((0, 0), (120, 120)))
+        clip_path.add(dwg.rect((0, 0), (dim, dim)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
 
-        defs_g.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
-        defs_g.add(dwg.rect((5, 5), (110, 110), fill=self.color2, transform="rotate(45,60,60)"))
-        defs_g.add(dwg.circle((60, -10), 30, fill=self.color1))
-        defs_g.add(dwg.circle((-10, 60), 30, fill=self.color1))
-        defs_g.add(dwg.circle((130, 60), 30, fill=self.color1))
-        defs_g.add(dwg.circle((60, 130), 30, fill=self.color1))
-        defs_g.add(dwg.rect((40, 40), (40, 40), fill=self.color1))
+        R = 32
+        R_offset = 8
+        rotated_rect_dim = 105
+        inner_rect_dim = 40
+
+        defs_g.add(dwg.rect((0, 0), (dim, dim),
+                            fill=self.color1))
+        defs_g.add(dwg.rect(((dim-rotated_rect_dim)//2, (dim-rotated_rect_dim)//2),
+                             (rotated_rect_dim, rotated_rect_dim),
+                            fill=self.color2,
+                            transform="rotate(45,"+str(dim//2)+","+str(dim//2)+")"))
+        defs_g.add(dwg.circle((dim//2, -R_offset), R,
+                              fill=self.color1))
+        defs_g.add(dwg.circle((-R_offset, dim//2), R,
+                              fill=self.color1))
+        defs_g.add(dwg.circle((dim+R_offset, dim//2), R,
+                              fill=self.color1))
+        defs_g.add(dwg.circle((dim//2, dim+R_offset), R,
+                              fill=self.color1))
+        defs_g.add(dwg.rect(((dim-inner_rect_dim)//2, (dim-inner_rect_dim)//2),
+                             (inner_rect_dim, inner_rect_dim),
+                            fill=self.color1))
 
         dwg.add(dwg.use(defs_g, insert=(0, 0)))
         dwg.save()

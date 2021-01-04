@@ -63,6 +63,7 @@ if __name__ == '__main__':
                     ui.update()
 
         pygame.display.update()
+        time.sleep(0.5)
 
 
 
