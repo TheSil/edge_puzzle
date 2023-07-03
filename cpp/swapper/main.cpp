@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         int start = (int)time(0);
         const int restart_delay = 10;
         int restart_time = (int)time(0) + restart_delay;
-        int minimal_save_score = 456;
+        int minimal_save_score = 300;//456;
         int score = board.GetScore();
         int max_score = score;
         printf("score: %i\n", score);

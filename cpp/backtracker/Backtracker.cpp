@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm>
 #include "Backtracker.h"
 
 using namespace edge::backtracker;

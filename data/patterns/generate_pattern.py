@@ -128,8 +128,8 @@ class StarPattern:
         dwg = svgwrite.Drawing(filename, size=('120', '120'))
         dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
 
-        R = 52
-        r = 28
+        R = 45
+        r = 22
         sqrt3_2 = 0.8660254040
 
         outer_points = ((0,R),(sqrt3_2*R,0.5*R),(sqrt3_2*R,-0.5*R),(0,-R),(-sqrt3_2*R,-0.5*R),(-sqrt3_2*R,0.5*R))
@@ -168,13 +168,19 @@ class FlowerPattern:
         self.color2 = color2
 
     def save(self, filename):
-        dwg = svgwrite.Drawing(filename, size=('120', '120'))
-        dwg.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
-        dwg.add(dwg.circle((40, 40), 23, fill=self.color2))
-        dwg.add(dwg.circle((80, 40), 23, fill=self.color2))
-        dwg.add(dwg.circle((40, 80), 23, fill=self.color2))
-        dwg.add(dwg.circle((80, 80), 23, fill=self.color2))
-        dwg.add(dwg.circle((60, 60), 23, fill=self.color1))
+        dim = 120
+        dwg = svgwrite.Drawing(filename, size=(str(dim), str(dim)))
+
+        r_offset = 42
+        r = 21
+        R = 21
+
+        dwg.add(dwg.rect((0, 0), (dim, dim), fill=self.color1))
+        dwg.add(dwg.circle((r_offset, r_offset), r, fill=self.color2))
+        dwg.add(dwg.circle((dim-r_offset, r_offset), r, fill=self.color2))
+        dwg.add(dwg.circle((r_offset, dim-r_offset), r, fill=self.color2))
+        dwg.add(dwg.circle((dim-r_offset, dim-r_offset), r, fill=self.color2))
+        dwg.add(dwg.circle((60, 60), R, fill=self.color1))
         dwg.save()
 
 class CircleSubtractPattern2:
@@ -226,8 +232,8 @@ class CircleSubtractPattern3:
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
 
-        R=22
-        b=15
+        R=20
+        b=20
         q=1.5
 
         defs_g.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
@@ -257,12 +263,16 @@ class CircleSubtractPattern4:
         clip_path.add(dwg.rect((0, 0), (120, 120)))
         defs_g = dwg.defs.add(dwg.g(clip_path='url(#clipsq)'))
 
+        R = 38
+        r = 14
+        r_offset = 32
+
         defs_g.add(dwg.rect((0, 0), (120, 120), fill=self.color1))
-        defs_g.add(dwg.circle((60, 60), 40, fill=self.color2))
-        defs_g.add(dwg.circle((30, 30), 16, fill=self.color2))
-        defs_g.add(dwg.circle((90, 30), 16, fill=self.color2))
-        defs_g.add(dwg.circle((30, 90), 16, fill=self.color2))
-        defs_g.add(dwg.circle((90, 90), 16, fill=self.color2))
+        defs_g.add(dwg.circle((60, 60), R, fill=self.color2))
+        defs_g.add(dwg.circle((r_offset, r_offset), r, fill=self.color2))
+        defs_g.add(dwg.circle((120-r_offset, 30), r, fill=self.color2))
+        defs_g.add(dwg.circle((30, 120-r_offset), r, fill=self.color2))
+        defs_g.add(dwg.circle((120-r_offset, 120-r_offset), r, fill=self.color2))
         points = ((35,35),
                   (60, 40),
                   (85, 35),

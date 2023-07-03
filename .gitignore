@@ -6,4 +6,6 @@ records/
 x64/
 release/
 debug/
+build/
 *.user
+*.exe
